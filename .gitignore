@@ -90,3 +90,6 @@ ENV/
 
 # Macos garbage
 .DS_Store
+
+# Plots
+plots
