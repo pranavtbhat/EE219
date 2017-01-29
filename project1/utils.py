@@ -2,9 +2,11 @@ import pandas as pd
 import calendar
 import re
 import numpy as np
+from sklearn.metrics import mean_squared_error
+from math import sqrt
 
-def rmse(a1, a2):
-    return np.sqrt(np.mean((a1 - a2) ** 2))
+def rmse(y_actual, y_predicted):
+    return  sqrt(mean_squared_error(y_actual, y_predicted))
 
 ###
 # Utilities for the network backup dataset
@@ -18,9 +20,13 @@ def encode_day_names(days):
     return [day_to_num[day] for day in days]
 
 def encode_files(files):
-    return [re.match(r'File_((\d))', f).group(1) for f in files]
+    for i in range(len(files)):
+        files[i]=int (files[i].split('_')[-1])
+    return files
 
 def encode_work_flows(work_flows):
-    return [re.match(r'work_flow_((\d))', wf).group(1) for wf in work_flows]
+    for i in range(len(work_flows)):
+        work_flows[i]=int (work_flows[i].split('_')[-1])
+    return work_flows
 
 
