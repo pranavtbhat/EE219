@@ -4,7 +4,7 @@ import pandas as pd
 
 data = pd.read_csv("datasets/housing_data.csv")
 
-X = data.ix[:, [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12]].values
+X = data.ix[:, [0, 1, 3, 5, 7, 8, 9, 10, 11, 12]].values
 
 Y = data.ix[:, 13].values
 

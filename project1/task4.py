@@ -1,111 +1,79 @@
-from sklearn.model_selection import KFold
+from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn import linear_model
+import statsmodels.formula.api as sm
+from sklearn.model_selection import cross_val_predict, cross_val_score
 import utils
+import numpy as np
 
 import pandas as pd
 import matplotlib.pyplot as plt
 
 data = pd.read_csv("datasets/housing_data.csv")
-splits =  10
-kf = KFold(n_splits = splits)
+data.columns = ['CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'B', 'LSTAT', 'MEDV']
+data = data.astype(float)
 
-X = data.ix[:, [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12]].values
+X = data.ix[:, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]].values
 
 y = data.ix[:, 13].values
 
+model = sm.ols('MEDV ~ CRIM + ZN + INDUS + CHAS + NOX + RM + AGE + DIS + RAD + TAX + PTRATIO + B + LSTAT - 1', data).fit()
+print model.summary()
 
 ###
 #Linear Regression Model
 ###
 reg = linear_model.LinearRegression()
 
-best_rmse = float('inf')
-best_y = None
-best_y_predicted = None
-best_poly_y_predicted = None
-residual = None
-rmse_sum = 0
+y_predicted = cross_val_predict(reg, X, y, cv=10)
+print ('RMSE is: ', utils.rmse(y,y_predicted))
 
-for train_index, test_index in kf.split(X):
-    X_train, y_train = X[train_index], y[train_index]
-    X_test, y_test = X[test_index], y[test_index]
+cv_scores = cross_val_score(reg, X, y, cv=10, scoring='neg_mean_squared_error')
+print ('Average RMSE: ', (sum(cv_scores)/-10.0)**0.5)
+print ('Best RMSE: ', np.min((-1 * cv_scores)**0.5))
 
-    reg.fit(X_train, y_train)
-    y_predicted = reg.predict(X_test)
-    rmse = utils.rmse(y_predicted, y_test)
-    rmse_sum = rmse_sum + rmse
-    
-    if rmse < best_rmse:
-        best_rmse = rmse
-        best_coef = reg.coef_
-        best_y = y_test
-        best_y_predicted = y_predicted
-        residual = y_predicted - y_test
-        
-print('Best RMSE obtained from linear regression was: ', best_rmse)
-print('Average RMSE obtained from linear regression was: ', rmse_sum/splits)
-
-plt.figure()
-plt.scatter(range(len(best_y)), best_y, color='black')
-plt.plot(range(len(best_y_predicted)), best_y_predicted, color='blue', linewidth = 2)
-
+fig, ax = plt.subplots()
+ax.scatter(x=y, y=y_predicted)
+ax.plot([y.min(), y.max()], [y.min(), y.max()],  'k--', lw=4)
+ax.set_xlabel('Actual')
+ax.set_ylabel('Fitted')
 plt.show()
 
-plt.figure()
-plt.scatter(range(len(residual)), residual, color='black')
-plt.plot(range(len(best_y_predicted)), best_y_predicted, color='blue', linewidth = 2)
 
-plt.show()     
+y_residual = y - y_predicted
+fig, ax = plt.subplots()
+ax.scatter(y_predicted, y_residual)
+ax.set_xlabel('Fitted')
+ax.set_ylabel('Residual')
+plt.show()
 
 
 ###
 #Polynomial Regression Model
 ###
 
-rmse_sum = 0
-best_rmse = float('inf')
 rmse_degree = []
 
-for deg in range(1,4):
-    poly = PolynomialFeatures(degree=deg)
-    rmse_sum = 0
-    best_rmse = float('inf')
-    for train_index, test_index in kf.split(X):
-        X_train, y_train = X[train_index], y[train_index]
-        X_test, y_test = X[test_index], y[test_index]    
-        Xtrain_ = poly.fit_transform(X_train)
-        Xtest_ = poly.fit_transform(X_test)
+#Degree beyond 6 takes lot of time to compute
+for deg in range(1,6):
     
-        reg.fit(Xtrain_, y_train)
-        y_poly_predicted = reg.predict(Xtest_)    
-        rmse = utils.rmse(y_poly_predicted, y_test)
-        rmse_sum = rmse_sum + rmse
-    
-        if rmse < best_rmse:
-            best_rmse = rmse
-            best_y = y_test
-            best_poly_y_predicted = y_poly_predicted
-            residual = y_poly_predicted - y_test
-    
-    
-    print('Best RMSE obtained from polynomial regression with degree:', deg,  'was: ', best_rmse)
-    print('Average RMSE obtained from polynomial regression with degree: ', deg, 'was: ', rmse_sum/splits)
+    regr = make_pipeline(PolynomialFeatures(deg),linear_model.LinearRegression())
+    y_predicted = cross_val_predict(regr, X, y, cv = 10)
+    cv_scores = cross_val_score(regr, X, y,  cv=10, scoring='neg_mean_squared_error')
+    print ('---- Polynomial degree ----', deg)
+    print ('RMSE is: ', utils.rmse(y, y_predicted))
+    print ('Average RMSE: ', (sum(cv_scores)/-10.0)**0.5)
+    print ('Best RMSE: ', np.min((-1 * cv_scores)**0.5))
+    rmse_degree.append((sum(cv_scores)/-10.0)**0.5)
 
-    plt.figure()
-    plt.scatter(range(len(best_y)), best_y, color='black')
-    plt.plot(range(len(best_poly_y_predicted)), best_poly_y_predicted, color='blue', linewidth = 2)
+    fig, ax = plt.subplots()
+    ax.scatter(x=y, y=y_predicted)
+    ax.plot([y.min(), y.max()], [y_predicted.min(), y_predicted.max()],  'k--', lw=4)
+    ax.set_xlabel('Actual')
+    ax.set_ylabel('Fitted')
     
     plt.show()
     
-    plt.figure()
-    plt.scatter(range(len(residual)), residual, color='black')
-    plt.plot(range(len(best_poly_y_predicted)), best_poly_y_predicted, color='blue', linewidth = 2)
-    
-    plt.show()     
-    rmse_degree.append(best_rmse)
-
-
-print('All rmse are: ', rmse_degree)
+print ('Average RMSE of all degrees: ', rmse_degree)
 plt.figure()
-plt.plot(range(len(rmse_degree)), rmse_degree,color='blue', linewidth=3)
+plt.plot(range(1,len(rmse_degree)+1), rmse_degree,color='blue', linewidth=3)
