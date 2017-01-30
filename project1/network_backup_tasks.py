@@ -21,7 +21,7 @@ print max(data['TimePeriod #'])
 for wid in ('work_flow_0','work_flow_1','work_flow_2','work_flow_3','work_flow_4'):
     print wid
     workflow_id = data['Work-Flow-ID'] == wid
-    data_wid = data[workflow_id]
+    data_wifacebookd = data[workflow_id]
     for tp in range(min(data['TimePeriod #']),max(data['TimePeriod #'])+1,1):
         first_21_days = data_wid[data_wid['TimePeriod #']==tp]
         x=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]

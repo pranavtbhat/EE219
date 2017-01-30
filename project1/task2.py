@@ -73,7 +73,7 @@ rfr = RandomForestRegressor(
         n_estimators = 20,
         max_depth = 4,
         max_features = 6
-        )
+    )
 
 rfr.fit(X, y)
 y_predicted = rfr.predict(X)
@@ -86,9 +86,9 @@ print('RMSE is ', rmse)
 # Part c: Neural Networks
 ###
 nnr = MLPRegressor(
-    hidden_layer_sizes=(2),
-    # Maybe more here?
-)
+        hidden_layer_sizes=(2),
+        # Maybe more here?
+    )
 
 nnr.fit(X, y)
 y_predicted = nnr.predict(X)

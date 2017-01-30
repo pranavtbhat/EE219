@@ -1,0 +1,529 @@
+\documentclass[10pt]{article}
+\usepackage{fullpage}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{subcaption}
+
+\usepackage{enumitem}
+\setlist{noitemsep}
+
+\usepackage{hyperref}
+\hypersetup{%
+  colorlinks=false,% hyperlinks will be black
+    pdfborderstyle={/S/U/W 1}% border style will be underline of width 1pt
+}
+
+
+\doublespacing
+
+\begin{document}
+
+\linespread{1}
+
+\title{\Huge EE 219 Project 1 - Report}
+\maketitle
+
+
+\begin{center}
+\begin{tabular}{l c r}
+ Isha Verma & Heenal Doshi & Pranav Thulasiram Bhat \\
+  ishaverma@cs.ucla.edu & heenald@cs.ucla.edu     & pranavtbhat@cs.ucla.edu \\
+           404761131             & 004758927               & 704741684 \\
+           \end{tabular}
+           \end{center}
+
+           \vspace{20mm}
+
+           \section{Introduction}
+           The goal of this project was to analyze two data sets:
+
+           \begin{itemize}
+           \item Network Backup Dataset : Captures simulated traffic data on a backup system and contains information of the size of the data moved to the destination as well as the time it took for backup. We had to predict the backup size of the traffic depending on the the other variables such as file-name, day/time of backup.
+               \item Housing Dataset : The Boston-Housing data set that contains the mortgage values of suburbs. We had to employ Linear and Polynomial Regression along with other algorithms to overcome overfitting to create a predictive model that can be used to estimate the value of owner-occupied homes.
+               \end{itemize}
+
+               We have used regressions to analyze both datasets. Regression is
+               an approach for modeling the relationship between a scalar dependent variable and one or more explanatory variables / features. In this project, we have used cross-validation, regularization, random forest and neural network regression in order to predict a dependent variable present in the datasets.
+
+               \section{Network Backup Dataset}
+               The Network-Backup Dataset has information of files maintained in destination machine and it monitors
+               and copies their changes in four hours cycle. The features captured in data set are as follows:
+               \begin{enumerate}
+               \item Week index : Week number (Numeric)
+                   \item Day of the week : The day on which the backup takes place. (Categorical)
+                       \item Backup start time : The exact time at which the backup completes (Numeric)
+                           \item Work-Flow-ID : Identifies similar file backup operations (Categorical)
+                               \item File Name : Name of the file being backed-up (Categorical)
+                                   \item Size of Backup (GB) : Size of the file's backup (Numeric)
+                                       \item Backup time: The duration of the backup procedure in hours (Numeric)
+                                       \end{enumerate}
+
+                                       \section{Question 1 : Types of Relationships in the Dataset}
+                                       To understand the relationships between the variables in the dataset, we plotted the actual copy sizes of all files over a time period of 20 days for each workflow.
+
+                                       \begin{figure}[htp]
+                                       \centering
+                                       \includegraphics[width=.45\textwidth]{task1/work_flow_0}\quad
+                                       \includegraphics[width=.45\textwidth]{task1/work_flow_1}\quad
+
+                                       \medskip
+
+                                       \includegraphics[width=.45\textwidth]{task1/work_flow_2}\quad
+                                       \includegraphics[width=.45\textwidth]{task1/work_flow_3}\quad
+
+                                       \medskip
+                                           
+                                               \includegraphics[width=.45\textwidth]{task1/work_flow_4}\quad
+
+                                               \caption{The variance of file copy sizes over a time period of 20 days (Day 21 - 40) for each workflow}
+                                               \label{task1}
+                                               \end{figure}
+
+                                               We observed that each workflow followed a pattern that repeated over a period 7 days (i.e. weekly). All files in a workflow echoed the pattern pretty closely.  More details follow,
+                                               \begin{enumerate}
+                                               \item Work\_Flow\_0 : Copy size for files 0 to 5, belonging to this workflow constantly stays between 4-4.5 GB over the weekdays (days 1-5 and so on) and dips to 1.5-2 GB over the weekends.
+                                               \item Work\_Flow\_1 : Files in this workflow (6 to 11) emulate each other very closely. Each file reaches a peak copy size of 1.7 GB on Mondays, stays around .1 GB on Tuesday and negligible on other days.
+                                               \item Work\_Flow\_2 : The copy size for Files (12 to 17) only varies on Thursdays and Fridays, and stays negligible on other days.
+                                               \item Work\_Flow\_3 : Files in these workflow (18 to 23) show a little uneven distribution (more pronounced in the below graph since the total copy size is lower). Overall they have a higher copy size on Thursdays and Fridays and stay low on other days.
+                                                   \item Work\_Flow\_4 : Data back-up for Files (24 to 29) is mostly constant between 0.4 and 0.6 GB over the weekdays and shoots up over the weekend. Thus they show a behavior opposite to workflow 1 files.
+                                                       
+                                                       \end{enumerate}
+
+                                                       \section{Question 2a : Linear Regression}
+                                                       We started with a linear regression model using all variables and trained it using 10 fold cross validation.
+                                                       The RMSE obtained after 10-fold Cross-Validation was 0.0796
+
+                                                       In order to identify the statistical significance of each attribute we found their p-values using the statsmodel library.
+
+                                                       \begin{figure}[htp]
+                                                       \centering
+                                                       \includegraphics[width=\textwidth]{Task2/Linear_Regression_OLS}
+                                                       \caption{Linear Regression stats for Network Dataset}
+                                                       \label{task2-stats}
+                                                       \end{figure}
+
+                                                       As seen in the above figure,
+                                                       \begin{enumerate}
+                                                       \item Attributes Day of the week, Backup start time and Backup time had p values of 0 i.e. they are significant to the estimation. We observed the same from our manual investigation too.
+                                                       \item On the other hand, p-values for Week number and File name were considerably high, indicating they do not contribute much to the estimation. This was according to our expectations, as the patterns repeated every week and files belonging to same workflow showed more or less the same copy pattern and sizes too.
+                                                       \end{enumerate}
+
+                                                       \subsection{Fitted vs Actual Values}
+                                                       % TODO : EDIT
+                                                       The graph below shows the Actual vs Fitted values of Copy Size for the Linear Regression model. The data seems to be randomly distributed about the 45 degree line.
+                                                       As seen, the correlation between actual and predicted values is weak i.e. the predictions can be better.
+
+                                                       %% Insert Fitted vs Actual plot values here
+
+                                                       \begin{figure}[htp]
+                                                       \centering
+                                                       \includegraphics[width=0.7\textwidth]{Task2/lrActualvsFitted-6features}
+                                                       \caption{Fitted Values vs Actual Values for copy size}
+                                                       \label{task2a-fitted-vs-actual}
+                                                       \end{figure}
+
+                                                       \subsection{Residual vs Fitted Values}
+                                                       Figure 4 shows the graph for Residuals and Fitted values. The points are distributed evenly around Residual=0 and do not show any clear pattern.
+
+                                                       %% Insert Residuals vs Actual plot values here
+                                                       \begin{figure}[htp]
+                                                       \centering
+                                                       \includegraphics[width=0.7\textwidth]{Task2/lrFittedvsResidual-6features}
+                                                       \caption{Residual Values vs Actual Values for copy size}
+                                                       \label{task2a-residual-vs-actual}
+                                                       \end{figure}
+
+                                                       Based on the above two graphs we concluded that linear regression seems to be missing the predictive power to explain training data and more complex models need to be tried.
+                                                       \newline
+
+                                                       Notes:
+                                                       \begin{enumerate}
+                                                       \item We even tried removing the two features with high p value - Week number and File Name, however the RMSE and above graphs remained almost the same. 
+                                                           \item The given dataset contains three categorical features - day of the week, Workflow ID and File names. We considered two approaches for dealing with these features: Enumeration and one hot encoding. One hot encoding resulted into total of 45 columns, however improved the RMSE only negligibly.
+                                                               We decided to continue with enumeration following few intuitions: the feature fileName did not seem to contribute much to the prediction anyway, it might be useful to preserve the linear distance between week days given by enumeration and there was a negligible improvement in rmse for a large increase in variable count.
+                                                               \end{enumerate}
+
+                                                               \section{Question 2b: Random Forest Regression}
+                                                               We used the RandomForestRegressor from sklearn's ensemble library for this part. We performed parameter tuning to identify best values for max depth and number of estimators. Keeping a constant value for number of estimators we saw the RMSE was minimum when max depth = 10 (as seen in Figure 5). Using this max depth we identified the optimal number of estimators to be 180.
+
+                                                               With these parameters and 10 fold cross validation we observed RMSE around 0.00959.
+
+                                                               %% Insert RMSE vs Maximum Depth of Tree
+                                                               \begin{figure}[htp]
+                                                               \centering
+                                                               \includegraphics[width=0.7\textwidth]{Task2/rrRmseVsDepths}
+                                                               \caption{RMSE vs Maximum Depth of Tree}
+                                                               \label{task2b-rmseDepth}
+                                                               \end{figure}
+                                                               %% Insert RMSE vs Maximum Number of Trees
+                                                               \begin{figure}[htp]
+                                                               \centering
+                                                               \includegraphics[width=0.7\textwidth]{Task2/rrRmseVsTrees-maxDepth10}
+                                                               \caption{RMSE vs Maximum Number of Trees}
+                                                               \label{task2b-rmseNoOfTrees}
+                                                               \end{figure}
+
+
+                                                               \subsection{Fitted vs Actual Values}
+                                                               As expected, we saw a better fit between actual values and predicted values using Random forest. Figure 7 shows the points lying close to 45 degree line, indicating the same.
+                                                               \begin{figure}[htp]
+                                                               \centering
+                                                               \includegraphics[width=0.7\textwidth]{Task2/rrActualvsFitted-nestimators180-maxDepth10-6features2}
+                                                               \caption{Fitted vs Actual Values}
+                                                               \label{task2b-fitted-vs-actual}
+                                                               \end{figure}
+
+                                                               \subsection{Residuals vs Actual Values}
+                                                               Figure 8 shows the plot for residuals vs fitted values. The residuals seem evenly distributed  around 0, i.e. the model is correct on average for all fitted values, and do not show any clear pattern showing this particular model may not have evident room for improvement.
+                                                               \begin{figure}[htp]
+                                                               \centering
+                                                               \includegraphics[width=0.7\textwidth]{Task2/rrFittedvsResidual-nestimators180-maxDepth10-6features2}
+                                                               \caption{Residuals vs Fitted Values}
+                                                               \label{task2b-residual-vs-actual}
+                                                               \end{figure}
+
+                                                               \subsection{Interpreting Random Forest Model}
+                                                               We used the feature\_importance\_ measure provided for Random Forest Regressor by sklearn to identify the relative importance of the 6 features in our dataset.
+                                                               \paragraph{}
+                                                               The importance score in sorted order with 6 features was:
+                                                               [(0.4792, 'BackupTimeHour'), (0.3154, 'DayofWeek'), (0.0791, 'BackupStartTime'), (0.0755, 'FileName'), (0.0496, 'WorkFlowID'), (0.0012, 'WeekNo')]
+                                                               \newline
+                                                               Thus we saw that BackupTime and week day were the most informative features - which is aligned with our intuition, time taken for backup is a good indicator of the size of file and as observed in patterns in task 1 files followed a pattern each day of the week.
+                                                               At the same time, week number did not seem to be contributing much to the prediction which again aligns with our observation since the pattern repeats every week. Hence we decided to remove week number feature from our consideration.
+                                                               \paragraph{}
+                                                               File name and workflowID had similar importance score and it is possible in case of correlated features that feature picked first is given a higher score than the second even though it may not necessarily be more important that the other. We feel that may be the reason why workflow ID was ranked a little below File name. (Why they are correlated: Each workflow has a unique set of file names).
+                                                               \newline
+                                                               Hence we re-tested with 4 features: once removing the week number and file name and then removing the week number and the workflow ID. We observed the former gave the least RMSE, 0.0092.
+
+
+                                                               \subsection{Linear Regression vs Random Forest Regression}
+                                                               Thus the best RMSE value we obtained using Random Forest was 0.0092, significantly lower than the one observed with Linear Regression, 0.0796.
+
+                                                               \section{Question 2c: Neural Network Regression}
+                                                               A Neural Network Regression was built using the PyBrain library. In order to train the model we performed parameter tuning with respect to the number of epochs (one full training cycle on the training set) that the model runs for and the hidden size (the number of hidden nodes for the hidden layer) of the neural network.
+
+                                                               %% Insert RMSE vs Epochs
+                                                               \begin{figure}[htp]
+                                                               \centering
+                                                               \includegraphics[width=0.7\textwidth]{example-image-b}
+                                                               \caption{RMSE vs Maximum Number of Trees}
+                                                               \label{task2b-residual-vs-actual}
+                                                               \end{figure}
+
+                                                               The Neural Network was modeled to get the best parameters for number of epochs and hidden size. We identified that the model works best for both parameter values = 100. The RMSE obtained 0.042939.
+
+                                                               \subsection{How Parameters affect the RMSE}
+                                                               \begin{itemize}
+                                                               \item Since we can’t be sure if 10 epochs or 1000 are enough for convergence since it is dependent on the kind of dataset we feed to the network. Hence a threshold value can be used to stop training when the
+                                                               error goes below a certain threshold. This is crucial as it can also help prevent overfitting of data.
+                                                               \item Since error may fluctuate, we can also set a parameter( continueEpoch) to set the number of epochs until which it has to wait. This will get the best score or it can stop once it reaches this value. This
+                                                               will help in fine tuning of the epochs. The best RMSE value is obtained when epochs for this dataset is set to 10 and maxEpochs is 100.
+                                                               \item The number of nodes in hidden layer is dataset dependent. We ran the program for different values
+                                                               of hidden node size starting from 10. The hidden node size which minimizes the RMSE for network
+                                                               dataset is 100.
+                                                               \end{itemize}
+
+                                                               \section{Question 3a: Linear Regression on WorkFlows}
+
+                                                               As part of Question 3, we first performed piece-wise linear regression on each of the workflows present in the dataset. To do this, we loaded the dataframe, grouped by Work-Flow-ID and ran 10-fold cross validation. The results are presented in the subsections below:
+
+                                                               %%%
+                                                               % WORKFLOW 0
+                                                               %%%
+                                                               \subsection{WorkFlow 0}
+                                                               \textbf{Estimated intercept coefficient : 0.02605} \\
+                                                               \textbf{RMSE Values of Estimator : 0.0294}
+
+                                                               % TODO Fill in 
+                                                                       
+                                                                             
+                                                                             \begin{center}
+                                                                               \begin{tabular}{ | l | r | }
+                                                                                   \hline
+                                                                                       Features & EstimatedCoefficient \\ \hline
+                                                                                           0 & 5.94401787e-05 \\ \hline
+                                                                                               1 & -9.84671894e-03 \\ \hline
+                                                                                                   2 & 4.48020874e-03 \\ \hline
+                                                                                                       3 & 0.00000000e+00 \\ \hline
+                                                                                                           4 & 6.59748390e-05 \\ \hline
+                                                                                                               5 & 2.60534268e-02 \\ \hline
+                                                                                                                   \hline
+                                                                                                                     \end{tabular}
+                                                                                                                     \end{center}
+
+                                                                                                                     \begin{figure}[htp]
+                                                                                                                     \centering
+                                                                                                                     \includegraphics[width=.45\textwidth]{Task3/ActualvsFitted_work_flow_0}\quad
+                                                                                                                     \includegraphics[width=.45\textwidth]{Task3/FittedvsResidual_work_flow_0}\quad
+                                                                                                                     \caption{Fitted Values vs Actual Values and Residual Values vs Actual Values for Work-Flow-0}
+                                                                                                                     \label{task1}
+                                                                                                                     \end{figure}
+
+                                                                                                                     The RMSE value for Work-Flow-0 is clearly a huge improvement over the global RMSE value of 0.0796. There is very little variance in the predicted and fitted values. Therefore, the piece-wise fit is clearly better for Work-Flow-0.
+                                                                                                                     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+                                                                                                                     %%%
+                                                                                                                     % WORKFLOW 1
+                                                                                                                     %%%
+                                                                                                                     \textbf{WorkFlow 1}
+                                                                                                                     \textbf{Estimated intercept coefficient : 0.103}
+                                                                                                                     \textbf{RMSE Values of Estimator : 0.12}
+
+                                                                                                                     \begin{center}
+                                                                                                                       \begin{tabular}{ | l | r |}
+                                                                                                                           \hline
+                                                                                                                               Features & EstimatedCoefficient \\ \hline
+                                                                                                                                   0 & 2.71199653e-04 \\ \hline
+                                                                                                                                       1 & -1.50916282e-03 \\ \hline
+                                                                                                                                           2 & 3.53561392e-03 \\ \hline
+                                                                                                                                               3 & -2.77555756e-17 \\ \hline
+                                                                                                                                                   4 & 1.64243130e-04 \\ \hline
+                                                                                                                                                       5 & 1.27503655e-01 \\ \hline
+                                                                                                                                                           \hline
+                                                                                                                                                             \end{tabular}
+                                                                                                                                                             \end{center}
+
+                                                                                                                                                             \begin{figure}[htp]
+                                                                                                                                                             \centering
+                                                                                                                                                             \includegraphics[width=.45\textwidth]{Task3/ActualvsFitted_work_flow_1}\quad
+                                                                                                                                                             \includegraphics[width=.45\textwidth]{Task3/FittedvsResidual_work_flow_1}\quad
+                                                                                                                                                             \caption{Fitted Values vs Actual Values and Residual Values vs Actual Values for Work-Flow-1}
+                                                                                                                                                             \label{task1}
+                                                                                                                                                             \end{figure}
+
+                                                                                                                                                             The piece wise fit for Workflow-1 is clearly worse than the global fit. The graphs and the RMSE value indicate this.
+                                                                                                                                                             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+                                                                                                                                                             %%%
+                                                                                                                                                             % WORKFLOW 2
+                                                                                                                                                             %%%
+                                                                                                                                                             \textbf{WorkFlow 2}
+                                                                                                                                                             \textbf{Estimated intercept coefficient : 0.0255}
+                                                                                                                                                             \textbf{RMSE Values of Estimator : 0.02941}
+
+                                                                                                                                                             \begin{center}
+                                                                                                                                                               \begin{tabular}{ | l | r |}
+                                                                                                                                                                   \hline
+                                                                                                                                                                       Features & EstimatedCoefficient \\ \hline
+                                                                                                                                                                           0 & 1.73961525e-04 \\ \hline
+                                                                                                                                                                               1 & 6.37279081e-04 \\ \hline
+                                                                                                                                                                                   2 & 9.91253434e-05 \\ \hline
+                                                                                                                                                                                       3 & -6.93889390e-18 \\ \hline
+                                                                                                                                                                                           4 & -9.33609348e-05 \\ \hline
+                                                                                                                                                                                               5 & 4.38423508e-02 \\ \hline
+                                                                                                                                                                                                   \hline
+                                                                                                                                                                                                     \end{tabular}
+                                                                                                                                                                                                     \end{center}
+
+                                                                                                                                                                                                     \begin{figure}[htp]
+                                                                                                                                                                                                     \centering
+                                                                                                                                                                                                     \includegraphics[width=.45\textwidth]{Task3/ActualvsFitted_work_flow_2}\quad
+                                                                                                                                                                                                     \includegraphics[width=.45\textwidth]{Task3/FittedvsResidual_work_flow_2}\quad
+                                                                                                                                                                                                     \caption{Fitted Values vs Actual Values and Residual Values vs Actual Values for Work-Flow-2}
+                                                                                                                                                                                                     \label{task1}
+                                                                                                                                                                                                     \end{figure}
+
+                                                                                                                                                                                                     The piece-wise fit for Work-Flow-2 is much better than the global fit. The Residual vs Fitted values show deviations in the range of -0.15 to 0.05. Clearly the standard deviation is higher.
+                                                                                                                                                                                                     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+                                                                                                                                                                                                     %%%
+                                                                                                                                                                                                     % WORKFLOW 3
+                                                                                                                                                                                                     %%%
+                                                                                                                                                                                                     \textbf{WorkFlow 3}
+                                                                                                                                                                                                     \textbf{Estimated intercept coefficient : 0.00591}
+                                                                                                                                                                                                     \textbf{RMSE Values of Estimator : 0.02941}
+
+                                                                                                                                                                                                     \begin{center}
+                                                                                                                                                                                                       \begin{tabular}{ | l | r |}
+                                                                                                                                                                                                           \hline
+                                                                                                                                                                                                               Features & EstimatedCoefficient \\ \hline
+                                                                                                                                                                                                                   0 & 2.19482487e-05 \\ \hline
+                                                                                                                                                                                                                       1 & 2.41194316e-04 \\ \hline
+                                                                                                                                                                                                                           2 & 5.28018124e-05 \\ \hline
+                                                                                                                                                                                                                               3 & 1.62630326e-19 \\ \hline
+                                                                                                                                                                                                                                   4 & -4.46363557e-05 \\ \hline
+                                                                                                                                                                                                                                       5 & 8.54608156e-03 \\ \hline
+                                                                                                                                                                                                                                           \hline
+                                                                                                                                                                                                                                             \end{tabular}
+                                                                                                                                                                                                                                             \end{center}
+
+                                                                                                                                                                                                                                             \begin{figure}[htp]
+                                                                                                                                                                                                                                             \centering
+                                                                                                                                                                                                                                             \includegraphics[width=.45\textwidth]{Task3/ActualvsFitted_work_flow_3}\quad
+                                                                                                                                                                                                                                             \includegraphics[width=.45\textwidth]{Task3/FittedvsResidual_work_flow_3}\quad
+                                                                                                                                                                                                                                             \caption{Fitted Values vs Actual Values and Residual Values vs Actual Values}
+                                                                                                                                                                                                                                             \label{task1}
+                                                                                                                                                                                                                                             \end{figure}
+
+                                                                                                                                                                                                                                             The RMSE value for the all the workflows together as seen in Question 1 is 0.07956, and for Workflow-0 alone the RMSE value is improved to 0.02941. As seen from the graph of Residual Vs Fitted values the Residual goes upto 0.1 and from the graph of Fitted
+                                                                                                                                                                                                                                             values versus Actual values we can see that there is very less deviation between the actual and predicted values. The fit has improved for Workflow-0 compared
+                                                                                                                                                                                                                                             to the overall one.
+                                                                                                                                                                                                                                             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                   %%%
+                                                                                                                                                                                                                                                   % WORKFLOW 4
+                                                                                                                                                                                                                                                   %%%
+                                                                                                                                                                                                                                                   \textbf{WorkFlow 4}
+                                                                                                                                                                                                                                                   \textbf{Estimated intercept coefficient : 0.0842}
+                                                                                                                                                                                                                                                   \textbf{RMSE Values of Estimator : 0.02941}
+
+                                                                                                                                                                                                                                                   % TODO Fill in 
+                                                                                                                                                                                                                                                   \begin{center}
+                                                                                                                                                                                                                                                     \begin{tabular}{ | l | r |}
+                                                                                                                                                                                                                                                         \hline
+                                                                                                                                                                                                                                                             Features & EstimatedCoefficient \\ \hline
+                                                                                                                                                                                                                                                                 0 & 1.45723821e-04 \\ \hline
+                                                                                                                                                                                                                                                                     1 & 2.87361814e-02 \\ \hline
+                                                                                                                                                                                                                                                                         2 & -3.56007999e-04 \\ \hline
+                                                                                                                                                                                                                                                                             3 & -3.46944695e-18 \\ \hline
+                                                                                                                                                                                                                                                                                 4 & 2.52616548e-05 \\ \hline
+                                                                                                                                                                                                                                                                                     5 & 2.61646914e-02 \\ \hline
+                                                                                                                                                                                                                                                                                         \hline
+                                                                                                                                                                                                                                                                                           \end{tabular}
+                                                                                                                                                                                                                                                                                           \end{center}
+
+                                                                                                                                                                                                                                                                                           \begin{figure}[htp]
+                                                                                                                                                                                                                                                                                           \centering
+                                                                                                                                                                                                                                                                                           \includegraphics[width=.45\textwidth]{Task3/ActualvsFitted_work_flow_4}\quad
+                                                                                                                                                                                                                                                                                           \includegraphics[width=.45\textwidth]{Task3/FittedvsResidual_work_flow_4}\quad
+                                                                                                                                                                                                                                                                                           \caption{Fitted Values vs Actual Values and Residual Values vs Actual Values}
+                                                                                                                                                                                                                                                                                           \label{task1}
+                                                                                                                                                                                                                                                                                           \end{figure}
+
+                                                                                                                                                                                                                                                                                           The RMSE value for the all the workflows together as seen in Question 1 is 0.07956, and for Workflow-0 alone the RMSE value is improved to 0.02941. As seen from the graph of Residual Vs Fitted values the Residual
+                                                                                                                                                                                                                                                                                           goes upto 0.1 and from the graph of Fitted values versus Actual values we can see that there is very less deviation between the actual and predicted values. The fit has improved for Workflow-0 compared
+                                                                                                                                                                                                                                                                                           to the overall one.
+                                                                                                                                                                                                                                                                                           %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+                                                                                                                                                                                                                                                                                           \section{Question 3 : Polynomial Regression}
+                                                                                                                                                                                                                                                                                           In order to test our prediction model, we tried fitting a polynomial function to our variables. We tried and tested the model, by fitting the polynomial function upto power of 10. For polynomial regression
+                                                                                                                                                                                                                                                                                           we plotted
+                                                                                                                                                                                                                                                                                           RMSE vs polynomial degree and found that for degree 5 the RMSE value is minimum and then we get constant RMSE value as shown in the plot below.
+                                                                                                                                                                                                                                                                                           We used this obtained degree on our entire dataset by splitting the dataset as 90 percent training and 10 percent testing. The input attributes of the dataset were transformed to the degree of 5 and the model was
+                                                                                                                                                                                                                                                                                           created and tested. We obtained an RMSE Value = 0.16.
+
+                                                                                                                                                                                                                                                                                           \begin{figure}[htp]
+                                                                                                                                                                                                                                                                                           \centering
+                                                                                                                                                                                                                                                                                           \includegraphics[width=.75\textwidth]{example-image-b}
+                                                                                                                                                                                                                                                                                           \caption{Polynomial Regression - RMSE vs Degree of Polynomial}
+                                                                                                                                                                                                                                                                                           \label{polynomial}
+                                                                                                                                                                                                                                                                                           \end{figure}
+
+                                                                                                                                                                                                                                                                                           \subsection{How Cross-Validation Helps Control Complexity of the Model}
+                                                                                                                                                                                                                                                                                           \begin{enumerate}
+                                                                                                                                                                                                                                                                                           \item Cross validation has been used as a way to measure predictive performance of a statistical model. Since we are using statistics of model fitting we might not always get accurate results. Getting a high
+                                                                                                                                                                                                                                                                                           R-square values is not a definitive way of defining a good model as it can be easily over-fitted by using high degrees of freedom. Thus a model made to fit best on training data using polynomial regression
+                                                                                                                                                                                                                                                                                           may not work well on actual real world data.
+                                                                                                                                                                                                                                                                                               \item In CV, test data is not used in model estimation. Thus the MSE calculated on this data will give a more predictive accuracy. This is done over multiple folds to get a more conservative result. Thus,
+                                                                                                                                                                                                                                                                                               this method provides a nearly unbiased measure of MSE on new observations.
+                                                                                                                                                                                                                                                                                                   \item Thus, CV separates training data which is used for model selection and testing data which is used to validate the model. We can use this approach with different methods of training. The
+                                                                                                                                                                                                                                                                                                   method which gives minimum cross validation error can be chosen. All these factors can thus help in controlling the complexity of the model.
+                                                                                                                                                                                                                                                                                                   \end{enumerate}
+
+                                                                                                                                                                                                                                                                                                   \section{Boston Housing Dataset}
+                                                                                                                                                                                                                                                                                                   The Boston-Housing Dataset has information of housing values in the suburbs of the greater Boston area.
+                                                                                                                                                                                                                                                                                                   The features captured in data set are as follows:
+                                                                                                                                                                                                                                                                                                   \begin{itemize}
+                                                                                                                                                                                                                                                                                                   \item CRIM: per capita crime rate by town.
+                                                                                                                                                                                                                                                                                                       \item ZN: proportion of residential land zoned for lots over 25,000 sq. ft.
+                                                                                                                                                                                                                                                                                                           \item INDUS: proportion of non-retail business acres per town
+                                                                                                                                                                                                                                                                                                               \item CHAS: Charles River dummy variable (= 1 if tract bounds river; 0 otherwise)
+                                                                                                                                                                                                                                                                                                                   \item NOX: nitric oxides concentration (parts per 10 million)
+                                                                                                                                                                                                                                                                                                                       \item RM: average number of rooms per dwelling
+                                                                                                                                                                                                                                                                                                                           \item AGE: proportion of owner-occupied units built prior to 1940
+                                                                                                                                                                                                                                                                                                                               \item DIS: weighted distances to five Boston employment centers
+                                                                                                                                                                                                                                                                                                                                   \item RAD: index of accessibility to radial highways
+                                                                                                                                                                                                                                                                                                                                       \item TAX: full-value property-tax rate per \(0,000
+                                                                                                                                                                                                                                                                                                                                           \item PTRATIO: pupil-teacher ratio by town
+                                                                                                                                                                                                                                                                                                                                               \item 1000(Bk − 0.63)2 where Bk is the proportion of blacks by town
+                                                                                                                                                                                                                                                                                                                                                   \item LSTAT: lower status of the population
+                                                                                                                                                                                                                                                                                                                                                       \item MEDV: Median value of owner-occupied homes in \(000’s
+                                                                                                                                                                                                                                                                                                                                                       \end{itemize}
+                                                                                                                                                                                                                                                                                                                                                       For details about the dataset look at Appendix A: Boston Housing Dataset.
+                                                                                                                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                                                                                                                       \section{Question 4a: Linear Regression}
+                                                                                                                                                                                                                                                                                                                                                       Linear regression was performed on the above mentioned dataset with MEDV as the dependent variable and rest other attributes as features. Ordinary least
+                                                                                                                                                                                                                                                                                                                                                       squares was used as the penalty function. As done with Network Backup dataset, we performed the 10 fold cross validation. The results obtained were as
+                                                                                                                                                                                                                                                                                                                                                       follows (using the ols function of statsmodels.formula.api).
+                                                                                                                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                                                                                                                       \begin{figure}[htp]
+                                                                                                                                                                                                                                                                                                                                                       \centering
+                                                                                                                                                                                                                                                                                                                                                       \includegraphics[width=.75\textwidth]{Task4/HousingOLSResults}
+                                                                                                                                                                                                                                                                                                                                                       \caption{Linear Regression Results - Housing Dataset}
+                                                                                                                                                                                                                                                                                                                                                       \label{4}
+                                                                                                                                                                                                                                                                                                                                                       \end{figure}
+                                                                                                                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                                                                                                                       \begin{enumerate}
+                                                                                                                                                                                                                                                                                                                                                       \item The overall regression accuracy can be seen from R-square and adjusted R-square.
+                                                                                                                                                                                                                                                                                                                                                           \item The R-square of 0.741 shows that the variance in MEDV is dependent by 74\% on the remaining features. Thus the model is a good fit.
+                                                                                                                                                                                                                                                                                                                                                               \item In the above table, we can see that except INDUS and AGE, all other variables are significant due to their p-values.
+                                                                                                                                                                                                                                                                                                                                                                   \item RMSE Value of the estimator is 5.8889 which is due to the presence of outliers in the data as indicated in Figure 11.
+                                                                                                                                                                                                                                                                                                                                                                   \end{enumerate}
+                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                                                                                   \subsection{Fitted vs. Actual Values}
+                                                                                                                                                                                                                                                                                                                                                                   From the plot of Fitted Values vs Actual Values of MEDV , we can observe that majority of predicted values lie close to the regressed
+                                                                                                                                                                                                                                                                                                                                                                   diagonal line. This explains the high R square value of this model.
+                                                                                                                                                                                                                                                                                                                                                                   A high R square indicates that the goodness of fit is strong and thus the above plot should have majority points close to the diagonal. For a
+                                                                                                                                                                                                                                                                                                                                                                   actual median value of 50, we see that the predicted values are underestimated by the model. 
+                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                                                                                   \begin{figure}[htp]
+                                                                                                                                                                                                                                                                                                                                                                   \centering
+                                                                                                                                                                                                                                                                                                                                                                   \includegraphics[width=.75\textwidth]{Task4/ActualvsFitted.png}
+                                                                                                                                                                                                                                                                                                                                                                   \caption{Linear Regression - Fitted Values vs. Actual Values of MEDV}
+                                                                                                                                                                                                                                                                                                                                                                   \label{4}
+                                                                                                                                                                                                                                                                                                                                                                   \end{figure}
+                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                                                                                   \subsection{Residuals vs. Actual Values}
+                                                                                                                                                                                                                                                                                                                                                                   From the plot of Residual Values vs. Fitted Values we can see that the residuals are close to the fitted line and a cluster can be seen in the
+                                                                                                                                                                                                                                                                                                                                                                   middle of the plot. Also, there are no clear patterns visible which
+                                                                                                                                                                                                                                                                                                                                                                   makes this plot an ideal one. 
+                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                                                                                   \begin{figure}[htp]
+                                                                                                                                                                                                                                                                                                                                                                   \centering
+                                                                                                                                                                                                                                                                                                                                                                   \includegraphics[width=.75\textwidth]{Task4/FittedvsResidual}
+                                                                                                                                                                                                                                                                                                                                                                   \caption{Linear Regression - Residual Values vs. Fitted Values of MEDV}
+                                                                                                                                                                                                                                                                                                                                                                   \label{4}
+                                                                                                                                                                                                                                                                                                                                                                   \end{figure}
+                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                                                                                   \section{Question 4b: Polynomial Regression}
+                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                                                                                   \begin{figure}[htp]
+                                                                                                                                                                                                                                                                                                                                                                   \centering
+                                                                                                                                                                                                                                                                                                                                                                   \includegraphics[width=.75\textwidth]{Task4/RMSEvsDegree}
+                                                                                                                                                                                                                                                                                                                                                                   \caption{Polynomial Regression - RMSE vs. Degree of Polynomial}
+                                                                                                                                                                                                                                                                                                                                                                   \label{4}
+                                                                                                                                                                                                                                                                                                                                                                   \end{figure}
+                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                                                                                   We performed polynomial regression on the housing dataset starting from degree 1 to degree 10. We observed that the RMSE value decreased as we
+                                                                                                                                                                                                                                                                                                                                                                   increased the degree of polynomial but increases drastically after increasing degree beyond 3. Thus the optimal degree of fit is 3 with RMSE
+                                                                                                                                                                                                                                                                                                                                                                   value as 3.68. 
+                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                                                                                   \section{Question 5: Ridge Regression and Lasso Regularization}
+                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                                                                                   \subsection{RIDGE REGRESSION}
+                                                                                                                                                                                                                                                                                                                                                                   \begin{itemize}
+                                                                                                                                                                                                                                                                                                                                                                   \item Ridge regression is similar to least squares but shrinks the estimated coefficients towards zero.
+                                                                                                                                                                                                                                                                                                                                                                   \item RidgeCV implements ridge regression with built-in cross-validation of the alpha parameter.
+                                                                                                                                                                                                                                                                                                                                                                   \item RidgeCV generates the best alpha after performance tuning on the given dataset.
+                                                                                                                                                                                                                                                                                                                                                                   \end{itemize}
+                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                                                                                   \textbf{Best Alpha value for Ridge Regression : 1}
+                                                                                                                                                                                                                                                                                                                                                                   \textbf{Best RMSE for corresponding Alpha = 4.788976}
+                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                                                                                   \subsection{Lasso Regularization}
+                                                                                                                                                                                                                                                                                                                                                                   \begin{itemize}
+                                                                                                                                                                                                                                                                                                                                                                   \item The Lasso is a linear model that estimates sparse coefficients. It is useful in some contexts due to its tendency to prefer solutions
+                                                                                                                                                                                                                                                                                                                                                                   with fewer parameter values, effectively reducing the number of variables
+                                                                                                                                                                                                                                                                                                                                                                   upon which the given solution is dependent. For this reason, the Lasso and its variants are fundamental to the field of compressed sensing.
+                                                                                                                                                                                                                                                                                                                                                                   \item The library used for performing lasso regression is LassoCV. After performance tuning, the alpha
+                                                                                                                                                                                                                                                                                                                                                                   obtained is given below.
+                                                                                                                                                                                                                                                                                                                                                                   \end{itemize}
+                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                                                                                   \textbf{Best Alpha value for Lasso Regularization : 0.001}
+                                                                                                                                                                                                                                                                                                                                                                   \textbf{Best RMSE for corresponding Alpha = 4.791015}
+                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                                                                                   \end{document}))
