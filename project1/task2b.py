@@ -48,6 +48,7 @@ for i,j in zip(uniqueWorkFlow,range(len(uniqueWorkFlow))):
 for i,j in zip(uniqueFiles,range(len(uniqueFiles))):
     networkDataset = networkDataset.replace({'FileName': {i : j}})
 
+## Uncomment to use data without columns FileName and WeekNumber
 dataNew=data
 dataNew['WorkFlowID']=networkDataset['WorkFlowID']
 dataNew['FileName']=networkDataset['FileName']
@@ -60,53 +61,53 @@ del dataNew['SizeofBackupGB']
 ###
 # Part b: Random Forest Regression
 ###
-#
-# rmse=[]
-# trees=[]
-# for noOfTrees in range(10,400,10):
-#     rfr = RandomForestRegressor(
-#         n_estimators=noOfTrees,
-#         max_depth=10,
-#         max_features=4
-#     )
-#
-#     cv_scores = cross_val_score(rfr, X, y, cv=10, scoring='neg_mean_squared_error')
-#     print noOfTrees
-#
-#     rmse.append((sum(cv_scores) / -10.0) ** 0.5)
-#     trees.append(noOfTrees)
-#
-# plt.plot(trees,rmse)
-# plt.xlabel('Number of Trees')
-# plt.ylabel('RMSE')
-# plt.savefig('plots/rrRmseVsTrees-maxDepth10-6features2.png',format='png')
-# plt.clf()
 
-# rmse=[]
-# depths=[]
-# for depth in range(4,15,1):
-#     rfr = RandomForestRegressor(
-#         n_estimators=80,
-#         max_depth=depth,
-#         max_features=4
-#     )
-#
-#     cv_scores = cross_val_score(rfr, X, y, cv=10, scoring='neg_mean_squared_error')
-#     print depth
-#
-#     rmse.append((sum(cv_scores) / -10.0) ** 0.5)
-#     depths.append(depth)
-#
-# plt.plot(depths,rmse)
-# plt.xlabel('Max Depth')
-# plt.ylabel('RMSE')
-# plt.savefig('plots/rrRmseVsDepths-nestimators80-4features2.png',format='png')
+rmse=[]
+trees=[]
+for noOfTrees in range(10,400,10):
+    rfr = RandomForestRegressor(
+        n_estimators=noOfTrees,
+        max_depth=10,
+        max_features=4
+    )
+
+    cv_scores = cross_val_score(rfr, X, y, cv=10, scoring='neg_mean_squared_error')
+    print noOfTrees
+
+    rmse.append((sum(cv_scores) / -10.0) ** 0.5)
+    trees.append(noOfTrees)
+
+plt.plot(trees,rmse)
+plt.xlabel('Number of Trees')
+plt.ylabel('RMSE')
+plt.savefig('plots/rrRmseVsTrees.png',format='png')
+plt.clf()
+
+rmse=[]
+depths=[]
+for depth in range(4,15,1):
+    rfr = RandomForestRegressor(
+        n_estimators=80,
+        max_depth=depth,
+        max_features=6
+    )
+
+    cv_scores = cross_val_score(rfr, X, y, cv=10, scoring='neg_mean_squared_error')
+    print depth
+
+    rmse.append((sum(cv_scores) / -10.0) ** 0.5)
+    depths.append(depth)
+
+plt.plot(depths,rmse)
+plt.xlabel('Max Depth')
+plt.ylabel('RMSE')
+plt.savefig('plots/rrRmseVsDepths.png',format='png')
 
 
 rfr = RandomForestRegressor(
         n_estimators=160,
         max_depth=10,
-        max_features=4
+        max_features=6
     )
 y_predicted = cross_val_predict(rfr, dataNew, y, cv=10)
 
@@ -126,7 +127,7 @@ ax.scatter(x=y, y=y_predicted)
 ax.plot([y.min(), y.max()], [y.min(), y.max()],  'k--', lw=4)
 ax.set_xlabel('Actual')
 ax.set_ylabel('Fitted')
-plt.savefig('plots/rrActualvsFitted-nestimators180-maxDepth10-6features2.png', format='png')
+plt.savefig('plots/rrActualvsFitted.png', format='png')
 plt.clf()
 
 
@@ -137,9 +138,10 @@ fig, ax = plt.subplots()
 ax.scatter(y_predicted, y_residual)
 ax.set_xlabel('Fitted')
 ax.set_ylabel('Residual')
-plt.savefig('plots/rrFittedvsResidual-nestimators180-maxDepth10-6features2.png', format='png')
+plt.savefig('plots/rrFittedvsResidual.png', format='png')
 plt.clf()
 
+## Tuning Parameters usign Randomized Search
 # clf = RandomForestRegressor()
 # param_dist = {"n_estimators":sp_randint(1, 180),
 #               "max_depth": sp_randint(4, 14),

@@ -42,14 +42,7 @@ y = data.ix[:, 5].values
 ###
 # Part c: Neural Networks
 ###
-# for i in range(1,100,1):
-#     nnr = MLPRegressor(hidden_layer_sizes=(i))# Maybe more here?)
-#
-#     nnr.fit(X, y)
-#     y_predicted = nnr.predict(X)
-#
-#     rmse = utils.rmse(y, y_predicted)
-#     print('RMSE is ', rmse)
+
 
 X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size=0.3, random_state=3)
 
@@ -65,26 +58,48 @@ y_test_nn = y_test.copy().reshape( -1, 1 )
 ds_test.setField( 'target', y_test_nn )
 
 for hidden in range(1,8,1):
-    #for epoch in range(10,200,10):
-        hidden_size = hidden
+    hidden_size = hidden
+    epochs=100
 
-        net = buildNetwork(6, hidden_size, 1, bias = True)
+    net = buildNetwork(6, hidden_size, 1, bias = True)
+    trainer = BackpropTrainer( net, ds )
 
-        trainer = BackpropTrainer( net, ds )
+    trnerror, valerror = trainer.trainUntilConvergence(maxEpochs = epochs)
+    plt.plot(trnerror,'b',valerror,'r')
+    plt.savefig("plots/nn"+str(hidden)+"_100"+".png",format='png')
+    plt.clf()
 
-        trnerror, valerror = trainer.trainUntilConvergence(maxEpochs = 100)
-        plt.plot(trnerror,'b',valerror,'r')
-        plt.savefig("plots/nn"+str(hidden)+"_100"+".png",format='png')
-        plt.clf()
+    p = net.activateOnDataset( ds_test )
+    print('Neural Network - Hidden size: %d Epchs: %d RMSE: %.4f' % (hidden_size, epochs, np.sqrt(np.sum((p - y_test_nn) ** 2)/y_test.size)))
 
-        p = net.activateOnDataset( ds_test )
-        print('Neural Network - Hidden size: %d Epchs: %d RMSE: %.4f' % (hidden_size, 100, np.sqrt(np.sum((p - y_test_nn) ** 2)/y_test.size)))
 
-for num in range(0,5):
-    data_workflow =  one_hot_data[one_hot_data['Work-Flow-ID=work_flow_'+str(num)] == 1]
-    X = data_workflow[feature_cols]
-    y = data_workflow['Size of Backup (GB)']
-    Functions.fitWorkFlow(LinearRegression(), X, y, num)
+hiddenSize = 5
+epochs = 200  # got after parameter tuning
+# neural network training model
+net = buildNetwork( 6, hiddenSize, 1, bias = True )
+trainer = BackpropTrainer(net, ds)
+
+# uncomment to plot epoch vs rmse
+# takes time to execute as gets best epoch value
+
+
+# print "training for {} epochs...".format( epochs )
+# for i in range(epochs):
+#     print i
+#     mse = trainer.train()
+#     print trainer.module
+#     rmse = mse ** 0.5
+#     RMSEerror.append(rmse)
+# plt.plot(range(epochs), RMSEerror)
+# plt.xlabel("Epochs")
+# plt.ylabel("RMSE")
+# plt.title("RMSE vs Epochs")
+# plt.savefig("plots/RMSE vs Epochs.png")
+# plt.clf()
+
+
+
+print "Root Mean Squared Error for Best Parameters : " + str(rmse)
 
 def printNetwork():
     print net
