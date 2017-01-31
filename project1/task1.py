@@ -37,3 +37,6 @@ for wid, wgrp in first_20_days.groupby('Work-Flow-ID'):
     ax.set_title('Copy size variance for ' + wid)
 
     fig.savefig('plots/' + wid + '.png', format='png')
+
+print("Task 1 has been executed")
+plt.show()

@@ -64,31 +64,25 @@ ds_test.setField( 'input', X_test)
 y_test_nn = y_test.copy().reshape( -1, 1 )
 ds_test.setField( 'target', y_test_nn )
 
-for hidden in range(1,8,1):
-    #for epoch in range(10,200,10):
-        hidden_size = hidden
+for hidden in range(5,6):
+    hidden_size = hidden
 
-        net = buildNetwork(6, hidden_size, 1, bias = True)
+    net = buildNetwork(6, hidden_size, 1, bias = True)
 
-        trainer = BackpropTrainer( net, ds )
+    trainer = BackpropTrainer( net, ds )
 
-        trnerror, valerror = trainer.trainUntilConvergence(maxEpochs = 100)
-        plt.plot(trnerror,'b',valerror,'r')
-        plt.savefig("plots/nn"+str(hidden)+"_100"+".png",format='png')
-        plt.clf()
+    trnerror, valerror = trainer.trainUntilConvergence(maxEpochs = 200)
+    plt.plot(trnerror,'b',valerror,'r')
+    plt.savefig("plots/nn"+str(hidden)+"_100"+".png",format='png')
+    plt.clf()
 
-        p = net.activateOnDataset( ds_test )
-        print('Neural Network - Hidden size: %d Epchs: %d RMSE: %.4f' % (hidden_size, 100, np.sqrt(np.sum((p - y_test_nn) ** 2)/y_test.size)))
+    p = net.activateOnDataset( ds_test )
+    print('Neural Network - Hidden size: %d Epchs: %d RMSE: %.4f' % (hidden_size, 100, np.sqrt(np.sum((p - y_test_nn) ** 2)/y_test.size)))
 
-for num in range(0,5):
-    data_workflow =  one_hot_data[one_hot_data['Work-Flow-ID=work_flow_'+str(num)] == 1]
-    X = data_workflow[feature_cols]
-    y = data_workflow['Size of Backup (GB)']
-    Functions.fitWorkFlow(LinearRegression(), X, y, num)
 
 def printNetwork():
-    print net
-    print net.modules
+    print(net)
+    print(net.modules)
     for mod in net.modules:
         print("Module:", mod.name)
         if mod.paramdim > 0:

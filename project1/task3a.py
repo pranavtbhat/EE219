@@ -34,10 +34,11 @@ for wid, grp in data.groupby('Work-Flow-ID'):
     ax.set_xlabel('Actual')
     ax.set_ylabel('Fitted')
     plt.savefig('plots/ActualvsFitted_' + wid + '.png', format='png')
+    plt.show()
     plt.clf()
 
 
-    #Residual
+    # Residual
     y_residual = y - y_predicted
 
     fig, ax = plt.subplots()
@@ -45,4 +46,5 @@ for wid, grp in data.groupby('Work-Flow-ID'):
     ax.set_xlabel('Fitted')
     ax.set_ylabel('Residual')
     plt.savefig('plots/FittedvsResidual_' + wid + '.png', format='png')
+    plt.show()
     plt.clf()
