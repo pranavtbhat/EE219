@@ -31,11 +31,10 @@ data = pd.read_csv("datasets/network_backup_dataset.csv")
 data = data.replace({'DayofWeek': {'Monday' : 0, 'Tuesday' : 1, 'Wednesday' : 2 , 'Thursday' : 3, 'Friday' : 4,
                                                      'Saturday' : 5, 'Sunday' : 6 }})
 
-kf = KFold(n_splits = 10)
 
-X = data.ix[:, [ 1, 2, 3, 6]].values
-X[:, 2] = utils.encode_work_flows(X[:, 2])
-#X[:, 4] = utils.encode_files(X[:, 4])
+X = data.ix[:, [0, 1, 2, 3,4, 6]].values
+X[:, 3] = utils.encode_work_flows(X[:, 3])
+X[:, 4] = utils.encode_files(X[:, 4])
 
 y = data.ix[:, 5].values
 
@@ -50,12 +49,13 @@ for i,j in zip(uniqueWorkFlow,range(len(uniqueWorkFlow))):
 for i,j in zip(uniqueFiles,range(len(uniqueFiles))):
     networkDataset = networkDataset.replace({'FileName': {i : j}})
 
-dataNew=data
-dataNew['WorkFlowID']=networkDataset['WorkFlowID']
-dataNew['FileName']=networkDataset['FileName']
-dataNew['SizeofBackupGB']=y
-del dataNew['FileName']
-del dataNew['WeekNo']
+## Uncomment to use data without columns FileName and WeekNumber
+# dataNew=data
+# dataNew['WorkFlowID']=networkDataset['WorkFlowID']
+# dataNew['FileName']=networkDataset['FileName']
+# dataNew['SizeofBackupGB']=y
+# del dataNew['FileName']
+# del dataNew['WeekNo']
 
 ###
 # Part a: Linear Regression Model
@@ -91,9 +91,10 @@ plt.clf()
 
 #What do p values mean per column value? -_-
 
-model = sm.ols('SizeofBackupGB ~  DayofWeek + BackupStartTime + WorkFlowID + BackupTimeHour ',dataNew).fit()
+model = sm.ols('SizeofBackupGB ~ WeekNo+ DayofWeek + BackupStartTime + WorkFlowID+FileName + BackupTimeHour ',networkDataset).fit()
 print model.summary()
 
+## Uncomment to check the effect with one hot encoding
 # network_data = pd.read_csv('datasets/network_backup_dataset.csv')
 # #One Hot Encoding
 # one_hot_data, _, _ = one_hot_dataframe(network_data, ['DayofWeek', 'WorkFlowID','FileName'], replace=True)
