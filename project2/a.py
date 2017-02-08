@@ -37,3 +37,10 @@ plt.ylabel("Frequencies")
 plt.show()
 
 plt.savefig('plots/histogram.png', format='png')
+
+num_ct = sum(freqs[0:3])
+num_rec = sum(freqs[4:7])
+
+
+print "Number of documents in the Computer Technology class is ", num_ct
+print "Number of documents in the Recreational activity class is", num_rec
