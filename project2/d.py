@@ -3,11 +3,8 @@ from sklearn.datasets import fetch_20newsgroups
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.pipeline import Pipeline
-from pandas import DataFrame
-import nltk
 import cPickle
 from sklearn.decomposition import TruncatedSVD
-from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk.stem.snowball import SnowballStemmer
 from nltk.tokenize import RegexpTokenizer
@@ -33,12 +30,22 @@ newsgroups_test = fetch_20newsgroups(subset='test',categories=categories)
 
 # Ignore words appearing in less than 2 documents or more than 99% documents.
 # min_df reduces from 100k to 29k
-vectorizer = CountVectorizer(analyzer='word',stop_words=stop_words,ngram_range=(1, 1), tokenizer=StemTokenizer(),
-                             lowercase=True,max_df=0.99, min_df=2)
+vectorizer = CountVectorizer(
+    analyzer='word',
+    stop_words=stop_words,
+    ngram_range=(1, 1),
+    tokenizer=StemTokenizer(),
+    lowercase=True,
+    max_df=0.99,
+    min_df=2
+)
 
-tfidf_transformer = TfidfTransformer(norm='l2')
+tfidf_transformer = TfidfTransformer(
+    norm='l2',
+    sublinear_tf=True
+)
 
-svd = TruncatedSVD(n_components=50, random_state=42)
+svd = TruncatedSVD(n_components=50)
 
 
 pipeline = Pipeline([('vectorize', vectorizer),

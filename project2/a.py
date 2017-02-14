@@ -34,10 +34,8 @@ plt.subplots_adjust(bottom=0.45)
 plt.xlabel("Categories")
 plt.ylabel("Frequencies")
 
-plt.show()
-
 plt.savefig('plots/histogram.png', format='png')
-
+plt.show()
 num_ct = sum(freqs[0:3])
 num_rec = sum(freqs[4:7])
 
