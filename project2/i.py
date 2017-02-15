@@ -1,109 +1,91 @@
-import cPickle
-import os
 from sklearn.datasets import fetch_20newsgroups
+from sklearn import svm
 import sklearn.metrics as smet
-from sklearn.linear_model import LogisticRegression
-import numpy as np
-import matplotlib.pyplot as plt
+from sklearn.multiclass import OneVsRestClassifier, OneVsOneClassifier
+from sklearn.naive_bayes import GaussianNB
 
+from sklearn.feature_extraction import text
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.decomposition import TruncatedSVD
+from nltk.stem import WordNetLemmatizer
+from nltk.stem.snowball import SnowballStemmer
+from nltk.tokenize import RegexpTokenizer
 
 ###
 # Load datsets
 ###
-comp_tech = [
-    "comp.graphics",
-    "comp.os.ms-windows.misc",
-    "comp.sys.ibm.pc.hardware",
-    "comp.sys.mac.hardware"
+categories = [
+    'comp.sys.ibm.pc.hardware',
+    'comp.sys.mac.hardware',
+    'misc.forsale',
+    'soc.religion.christian'
 ]
 
-rec_act = [
-    "rec.autos",
-    "rec.motorcycles",
-    "rec.sport.baseball",
-    "rec.sport.hockey"
-]
+class StemTokenizer(object):
+    def __init__(self):
+        self.wnl = WordNetLemmatizer()
+        self.snowball_stemmer = SnowballStemmer("english", ignore_stopwords=True)
+        self.regex_tokenizer = RegexpTokenizer(r'\w+')
 
-train = fetch_20newsgroups(
-    subset = 'train',
-    categories = comp_tech + rec_act,
+    def __call__(self, doc):
+        # tmp = [self.wnl.lemmatize(t) for t in word_tokenize(doc)]
+        tmp = [self.snowball_stemmer.stem(t) for t in self.regex_tokenizer.tokenize(doc)]
+        return tmp
+
+stop_words = text.ENGLISH_STOP_WORDS
+
+train = fetch_20newsgroups(subset='train',categories=categories)
+test = fetch_20newsgroups(subset='test',categories=categories)
+
+# Ignore words appearing in less than 2 documents or more than 99% documents.
+# min_df reduces from 100k to 29k
+vectorizer = CountVectorizer(
+    analyzer='word',
+    stop_words=stop_words,
+    ngram_range=(1, 1),
+    tokenizer=StemTokenizer(),
+    lowercase=True,
+    max_df=0.99,
+    min_df=2
 )
 
-test =  fetch_20newsgroups(
-    subset = 'test',
-    categories = comp_tech + rec_act
+tfidf_transformer = TfidfTransformer(
+    norm='l2',
+    sublinear_tf=True
 )
 
-###
-# Process datasets with new classifications
-###
+svd = TruncatedSVD(n_components=50)
 
-train.target = map(lambda x : int(0 <= x and x < 4), train.target)
-test.target = map(lambda x : int(0 <= x and x < 4), test.target)
+pipeline = Pipeline([('vectorize', vectorizer),
+                     ('tf-idf', tfidf_transformer),
+                     ('svd', svd)])
 
-if not (os.path.isfile("Data/Train_LSI.pkl") and os.path.isfile("Data/Test_LSI.pkl")):
-    print "Performing LSI on the TFxIDF matrices for Train and Test"
-    execfile('d.py')
+train_lsi = pipeline.fit_transform(train.data)
+test_lsi = pipeline.fit_transform(test.data)
 
+def perform_classification(clf):
+    global train_lsi, test_lsi, train, test
 
-train_lsi = cPickle.load(open("Data/Train_LSI.pkl", "r"))
-test_lsi = cPickle.load(open("Data/Test_LSI.pkl", "r"))
+    clf.fit(train_lsi, train.target)
+    predicted = clf.predict(test_lsi)
+    print "Accuracy is ", smet.accuracy_score(test.target, predicted) * 100
+    print "Precision is ", smet.precision_score(test.target, predicted, average='macro') * 100
 
-print "Dataset prepared for LogisticRegression with regularization"
+    print "Recall is ", smet.recall_score(test.target, predicted, average='macro') * 100
 
-params = list(range(-3, 4))
-l1_accuracies = []
-l2_accuracies = []
-
-l1_coef = []
-l2_coef = []
-
-for param in params:
-    l1_classifier = LogisticRegression(
-        penalty = 'l1',
-        C = 10 ** param,
-        solver = 'liblinear'
-    )
-    l1_classifier.fit(train_lsi, train.target)
-    l1_predicted = l1_classifier.predict(test_lsi)
-    l1_accuracies.append(
-        100 - smet.accuracy_score(test.target, l1_predicted) * 100
-    )
-    l1_coef.append(np.mean(l1_classifier.coef_))
+    print "Confusion Matrix is ", smet.confusion_matrix(test.target, predicted)
 
 
-    l2_classifier = LogisticRegression(
-        penalty = 'l2',
-        C = 10 ** param,
-        solver = 'liblinear'
-    )
-    l2_classifier.fit(train_lsi, train.target)
-    l2_predicted = l2_classifier.predict(test_lsi)
-    l2_accuracies.append(
-        100 - smet.accuracy_score(test.target, l2_predicted) * 100
-    )
-    l2_coef.append(np.mean(l2_classifier.coef_))
+print "One Vs One Classification using Naive Bayes"
+perform_classification(OneVsOneClassifier(GaussianNB()))
 
+print "One Vs Rest Classifciation using Naive Bayes"
+perform_classification(OneVsRestClassifier(GaussianNB()))
 
-for i, param in enumerate(params):
-    print "Regularization parameter set to ", param
-    print "Accuracy with L1 Regularization is ", l1_accuracies[i]
-    print "Mean of coefficients is ", l1_coef[i]
+print "One Vs One Classification using SVM"
+perform_classification(OneVsOneClassifier(svm.SVC(kernel='linear')))
 
-    print "Accuracy with L2 Regularization is ", l2_accuracies[i]
-    print "Mean of coefficients is ", l2_coef[i]
-    print ""
-
-
-plt.plot(l1_accuracies)
-plt.xticks(range(6), [10 ** param for param in params])
-plt.title("Accuracy of L1 Regularized LogisticRegression against the regularization parameter")
-plt.savefig("plots/i-l1.png", format="png")
-plt.show()
-plt.clf()
-
-plt.plot(l2_accuracies)
-plt.xticks(range(6), [10 ** param for param in params])
-plt.title("Accuracy of L2 Regularized LogisticRegression against the regularization parameter")
-plt.savefig("plots/i-l2.png", format="png")
-plt.show()
+print "One Vs Rest Classificaiton using SVM"
+perform_classification(OneVsRestClassifier(svm.SVC(kernel='linear')))
