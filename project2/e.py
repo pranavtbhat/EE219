@@ -1,86 +1,61 @@
-import cPickle
-import os
-from sklearn.datasets import fetch_20newsgroups
 from sklearn import svm
 import sklearn.metrics as smet
 from sklearn.metrics import roc_curve
 import matplotlib.pyplot as plt
+import a
+import d
 
 
-###
-# Load datsets
-###
-comp_tech = [
-    "comp.graphics",
-    "comp.os.ms-windows.misc",
-    "comp.sys.ibm.pc.hardware",
-    "comp.sys.mac.hardware"
-]
+def two_classify_data(data):
+    data.target = map(lambda x : int(0 <= x and x < 4), data.target)
 
-rec_act = [
-    "rec.autos",
-    "rec.motorcycles",
-    "rec.sport.baseball",
-    "rec.sport.hockey"
-]
+def print_statistics(actual, predicted):
+    print "Accuracy is ", smet.accuracy_score(actual, predicted) * 100
+    print "Precision is ", smet.precision_score(actual, predicted, average='macro') * 100
 
-train = fetch_20newsgroups(
-    subset = 'train',
-    categories = comp_tech + rec_act,
-)
+    print "Recall is ", smet.recall_score(actual, predicted, average='macro') * 100
 
-test =  fetch_20newsgroups(
-    subset = 'test',
-    categories = comp_tech + rec_act
-)
+    print "Confusion Matrix is ", smet.confusion_matrix(actual, predicted)
 
-###
-# Process datasets with new classifications
-###
+def plot_roc(actual, predicted, classifier_name):
+    x, y, _ = roc_curve(actual, predicted)
+    plt.plot(x, y, label="ROC Curve")
+    plt.plot([0, 1], [0, 1])
 
-train.target = map(lambda x : int(0 <= x and x < 4), train.target)
-test.target = map(lambda x : int(0 <= x and x < 4), test.target)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.2])
 
-if not (os.path.isfile("Data/Train_LSI.pkl") and os.path.isfile("Data/Test_LSI.pkl")):
-    print "Performing LSI on the TFxIDF matrices for Train and Test"
-    execfile('d.py')
+    plt.xlabel('False Positive Rate (FPR)')
+    plt.ylabel('True Positive Rate (TPR)')
+    plt.title('ROC Curves for ' + classifier_name + 'Classifier')
+    plt.legend(loc="best")
+
+    plt.savefig('plots/' + classifier_name, format='png')
+    plt.show()
 
 
-train_lsi = cPickle.load(open("Data/Train_LSI.pkl", "r"))
-test_lsi = cPickle.load(open("Data/Test_LSI.pkl", "r"))
+if __name__ == "__main__":
 
-print "Dataset prepared for SVM"
+    categories = a.fetch_all_categories()
 
-classifier = svm.SVC(kernel='linear')
+    train = a.fetch_train(categories)
+    test = a.fetch_test(categories)
 
-print "Training SVM classifier"
-classifier.fit(train_lsi, train.target)
+    two_classify_data(train)
+    two_classify_data(test)
 
-print "Predicting classifications of testing dataset"
-predicted = classifier.predict(test_lsi)
+    train_lsi, test_lsi = d.fetch_lsi_representation_catched(train, test)
+    print "Dataset prepared for SVM"
 
-print "Statistics of SVM classifiers:"
-print "Accuracy is ", smet.accuracy_score(test.target, predicted) * 100
-print "Precision is ", smet.precision_score(test.target, predicted, average='macro') * 100
+    classifier = svm.SVC(kernel='linear')
 
-print "Recall is ", smet.recall_score(test.target, predicted, average='macro') * 100
+    print "Training SVM classifier"
+    classifier.fit(train_lsi, train.target)
 
-print "Confusion Matrix is ", smet.confusion_matrix(test.target, predicted)
+    print "Predicting classifications of testing dataset"
+    predicted = classifier.predict(test_lsi)
 
+    print "Statistics of SVM classifiers:"
+    print_statistics(test.target, predicted)
 
-x, y, _ = roc_curve(test.target, predicted)
-
-plt.plot(x, y, label="ROC Curve")
-
-plt.plot([0, 1], [0, 1])
-
-plt.xlim([0.0, 1.0])
-plt.ylim([0.0, 1.2])
-
-plt.xlabel('False Positive Rate (FPR)')
-plt.ylabel('True Positive Rate (TPR)')
-plt.title('ROC Curves for SVM Classifier')
-plt.legend(loc="best")
-
-plt.savefig('plots/svm.png', format='png')
-plt.show()
+    plot_roc(test.target, predicted, 'SVM')

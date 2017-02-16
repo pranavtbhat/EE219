@@ -1,59 +1,73 @@
 from sklearn.feature_extraction import text
-from sklearn.datasets import fetch_20newsgroups
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.pipeline import Pipeline
 import cPickle
 from sklearn.decomposition import TruncatedSVD
-from nltk.stem import WordNetLemmatizer
-from nltk.stem.snowball import SnowballStemmer
-from nltk.tokenize import RegexpTokenizer
+import os
 
-# Todo: Refactor to call code in b.py
-
-# RegExpTokenizer reduces term count from 29k to 25k
-class StemTokenizer(object):
-    def __init__(self):
-        self.wnl = WordNetLemmatizer()
-        self.snowball_stemmer = SnowballStemmer("english", ignore_stopwords=True)
-        self.regex_tokenizer = RegexpTokenizer(r'\w+')
-
-    def __call__(self, doc):
-        # tmp = [self.wnl.lemmatize(t) for t in word_tokenize(doc)]
-        tmp = [self.snowball_stemmer.stem(t) for t in self.regex_tokenizer.tokenize(doc)]
-        return tmp
+import a
+import b
 
 stop_words = text.ENGLISH_STOP_WORDS
-categories=['comp.graphics','comp.os.ms-windows.misc','comp.sys.ibm.pc.hardware','comp.sys.mac.hardware','rec.autos','rec.motorcycles','rec.sport.baseball','rec.sport.hockey']
-newsgroups_train = fetch_20newsgroups(subset='train',categories=categories)
-newsgroups_test = fetch_20newsgroups(subset='test',categories=categories)
-
-# Ignore words appearing in less than 2 documents or more than 99% documents.
-# min_df reduces from 100k to 29k
-vectorizer = CountVectorizer(
-    analyzer='word',
-    stop_words=stop_words,
-    ngram_range=(1, 1),
-    tokenizer=StemTokenizer(),
-    lowercase=True,
-    max_df=0.99,
-    min_df=2
-)
-
-tfidf_transformer = TfidfTransformer(
-    norm='l2',
-    sublinear_tf=True
-)
-
-svd = TruncatedSVD(n_components=50)
 
 
-pipeline = Pipeline([('vectorize', vectorizer),
-                     ('tf-idf', tfidf_transformer),
-                     ('svd', svd)])
+def get_svd():
+    return TruncatedSVD(n_components=50)
 
-svd_matrix_train = pipeline.fit_transform(newsgroups_train.data)
-svd_matrix_test = pipeline.fit_transform(newsgroups_test.data)
+def fetch_lsi_representation(train, test):
+    pipeline = Pipeline(
+        [
+            ('vectorize', b.get_vectorizer()),
+            ('tf-idf', b.get_tfid_transformer()),
+            ('svd', get_svd())
+        ]
+    )
 
-cPickle.dump(svd_matrix_train,open("data/Train_LSI.pkl", "wb"))
-cPickle.dump(svd_matrix_test,open("data/Test_LSI.pkl", "wb"))
+    svd_matrix_train = pipeline.fit_transform(train.data)
+    svd_matrix_test = pipeline.fit_transform(test.data)
+
+    return svd_matrix_train, svd_matrix_test
+
+
+def fetch_lsi_representation_catched(train, test):
+    if not (os.path.isfile("Data/Train_LSI.pkl") and os.path.isfile("Data/Test_LSI.pkl")):
+
+        print "Performing LSI on the TFxIDF matrices for Train and Test"
+
+        svd_matrix_train, svd_matrix_test = fetch_lsi_representation(
+            train,
+            test
+        )
+        cPickle.dump(svd_matrix_train, open("data/Train_LSI.pkl", "wb"))
+        cPickle.dump(svd_matrix_test, open("data/Test_LSI.pkl", "wb"))
+
+        return svd_matrix_train, svd_matrix_test
+    else:
+        svd_matrix_train = cPickle.load(open("Data/Train_LSI.pkl", "r"))
+        svd_matrix_test = cPickle.load(open("Data/Test_LSI.pkl", "r"))
+
+        return svd_matrix_train, svd_matrix_test
+
+
+if __name__ == "__main__":
+    categories=[
+        'comp.graphics',
+        'comp.os.ms-windows.misc',
+        'comp.sys.ibm.pc.hardware',
+        'comp.sys.mac.hardware',
+        'rec.autos',
+        'rec.motorcycles',
+        'rec.sport.baseball',
+        'rec.sport.hockey'
+    ]
+
+    train = a.fetch_train(categories)
+    test = a.fetch_test(categories)
+
+    svd_matrix_train, svd_matrix_test = fetch_lsi_representation(
+        train,
+        test
+    )
+
+    cPickle.dump(svd_matrix_train, open("data/Train_LSI.pkl", "wb"))
+    cPickle.dump(svd_matrix_test, open("data/Test_LSI.pkl", "wb"))
+

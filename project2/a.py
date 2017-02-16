@@ -2,19 +2,19 @@ from sklearn.datasets import fetch_20newsgroups
 import matplotlib.pyplot as plt
 from collections import Counter
 
-comp_tech = [
-    "comp.graphics",
-    "comp.os.ms-windows.misc",
-    "comp.sys.ibm.pc.hardware",
-    "comp.sys.mac.hardware"
-]
 
-rec_act = [
-    "rec.autos",
-    "rec.motorcycles",
-    "rec.sport.baseball",
-    "rec.sport.hockey"
-]
+def fetch_all_categories():
+    return [
+       "comp.graphics",
+       "comp.os.ms-windows.misc",
+       "comp.sys.ibm.pc.hardware",
+       "comp.sys.mac.hardware"
+    ] + [
+       "rec.autos",
+       "rec.motorcycles",
+       "rec.sport.baseball",
+       "rec.sport.hockey"
+    ]
 
 def fetch_train(categories):
     return fetch_20newsgroups(
@@ -31,7 +31,7 @@ def fetch_test(categories):
     )
 
 if __name__ == "__main__":
-    train = fetch_train(comp_tech + rec_act)
+    train = fetch_train(fetch_all_categories())
     topic_names = train.target_names
 
     cc = Counter(train.target)
