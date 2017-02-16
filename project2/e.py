@@ -7,7 +7,7 @@ import d
 
 
 def two_classify_data(data):
-    data.target = map(lambda x : int(0 <= x and x < 4), data.target)
+    data.target = map(lambda x : int(x < 4), data.target)
 
 def print_statistics(actual, predicted):
     print "Accuracy is ", smet.accuracy_score(actual, predicted) * 100
@@ -47,15 +47,16 @@ if __name__ == "__main__":
     train_lsi, test_lsi = d.fetch_lsi_representation_catched(train, test)
     print "Dataset prepared for SVM"
 
-    classifier = svm.SVC(kernel='linear')
+    classifier = svm.SVC(kernel='linear', probability=True)
 
     print "Training SVM classifier"
     classifier.fit(train_lsi, train.target)
 
     print "Predicting classifications of testing dataset"
     predicted = classifier.predict(test_lsi)
+    predicted_probs = classifier.predict_proba(test_lsi)
 
     print "Statistics of SVM classifiers:"
     print_statistics(test.target, predicted)
 
-    plot_roc(test.target, predicted, 'SVM')
+    plot_roc(test.target, predicted_probs[:,1], 'SVM')

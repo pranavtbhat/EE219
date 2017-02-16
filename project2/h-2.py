@@ -55,10 +55,10 @@ if __name__ == "__main__":
 
     for i, param in enumerate(params):
         print "Regularization parameter set to ", param
-        print "Accuracy with L1 Regularization is ", l1_accuracies[i]
+        print "Training Error with L1 Regularization is ", l1_accuracies[i]
         print "Mean of coefficients is ", l1_coef[i]
 
-        print "Accuracy with L2 Regularization is ", l2_accuracies[i]
+        print "Training Error with L2 Regularization is ", l2_accuracies[i]
         print "Mean of coefficients is ", l2_coef[i]
         print ""
 
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     plt.xlabel('Regularization Parameter')
     plt.ylabel('Testing error')
     plt.xticks(range(6), [10 ** param for param in params])
-    plt.title("Accuracy of L1 Regularized LogisticRegression against the regularization parameter")
+    plt.title("Training Error of L1 Regularized LogisticRegression against the regularization parameter")
     plt.savefig("plots/i-l1.png", format="png")
     plt.show()
     plt.clf()
@@ -76,6 +76,6 @@ if __name__ == "__main__":
     plt.xlabel('Regularization Parameter')
     plt.ylabel('Testing error')
     plt.xticks(range(6), [10 ** param for param in params])
-    plt.title("Accuracy of L2 Regularized LogisticRegression against the regularization parameter")
+    plt.title("Training Error of L2 Regularized LogisticRegression against the regularization parameter")
     plt.savefig("plots/i-l2.png", format="png")
     plt.show()

@@ -23,8 +23,9 @@ if __name__ == "__main__":
 
     print "Predicting classifications of testing dataset"
     predicted = classifier.predict(test_lsi)
+    predicted_probs = classifier.predict_proba(test_lsi)
 
     print "Statistics of LogisticRegression classifiers:"
     e.print_statistics(test.target, predicted)
 
-    e.plot_roc(test.target, predicted, 'LogisticRegression')
+    e.plot_roc(test.target, predicted_probs[:,1], 'LogisticRegression')

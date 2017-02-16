@@ -68,6 +68,9 @@ if __name__ == "__main__":
         test
     )
 
+    print "Size of Training LSI representation is ", svd_matrix_train.shape
+    print "Size of Testing LSI representation is ", svd_matrix_test.shape
+
     cPickle.dump(svd_matrix_train, open("data/Train_LSI.pkl", "wb"))
     cPickle.dump(svd_matrix_test, open("data/Test_LSI.pkl", "wb"))
 

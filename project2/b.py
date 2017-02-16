@@ -3,10 +3,10 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.pipeline import Pipeline
 import nltk
-from nltk.stem import WordNetLemmatizer
 from nltk.stem.snowball import SnowballStemmer
-from nltk.tokenize import RegexpTokenizer
 import a
+import string
+import re
 
 # Uncomment if the machine is missing punkt, wordnet or stopwords modules.
 nltk.download('punkt')
@@ -18,24 +18,24 @@ nltk.download('stopwords')
 # RegExpTokenizer reduces term count from 29k to 25k
 class StemTokenizer(object):
     def __init__(self):
-        self.wnl = WordNetLemmatizer()
-        self.snowball_stemmer = SnowballStemmer("english", ignore_stopwords=True)
-        self.regex_tokenizer = RegexpTokenizer(r'\w+')
+        self.snowball_stemmer = SnowballStemmer("english")
 
     def __call__(self, doc):
-        # tmp = [self.wnl.lemmatize(t) for t in word_tokenize(doc)]
-        tmp = [self.snowball_stemmer.stem(t) for t in self.regex_tokenizer.tokenize(doc)]
-        return tmp
+        doc = re.sub('[,.-:/()?{}*$#&]', ' ', doc)
+        doc = ''.join(ch for ch in doc if ch not in string.punctuation)
+        doc = ''.join(ch for ch in doc if ord(ch) < 128)
+        doc = doc.lower()
+        words = doc.split()
+        words = [word for word in words if word not in text.ENGLISH_STOP_WORDS]
+
+        return [
+            self.snowball_stemmer.stem(word) for word in words
+        ]
 
 def get_vectorizer():
     return CountVectorizer(
-        analyzer='word',
-        stop_words= text.ENGLISH_STOP_WORDS,
-        ngram_range=(1, 1),
         tokenizer=StemTokenizer(),
-        lowercase=True,
-        max_df=0.99,
-        min_df=2
+        lowercase=True
     )
 
 def get_tfid_transformer():

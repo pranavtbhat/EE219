@@ -46,14 +46,15 @@ if __name__ == "__main__":
     print "Performing SVM classification using k = ", best_param
     classifier = svm.SVC(kernel='linear', C = 10 ** -(best_param))
 
-    classifier = svm.SVC(kernel='linear')
+    classifier = svm.SVC(kernel='linear', probability = True)
     print "Training SVM classifier"
     classifier.fit(train_lsi, train.target)
 
     print "Predicting classifications of testing dataset"
     predicted = classifier.predict(test_lsi)
+    predicted_probs = classifier.predict_proba(test_lsi)
 
     e.print_statistics(test.target, predicted)
-    e.plot_roc(test.target, predicted, 'SVM_CV')
+    e.plot_roc(test.target, predicted_probs[:,1], 'SVM_CV')
 
 

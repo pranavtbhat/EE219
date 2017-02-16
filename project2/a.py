@@ -20,14 +20,16 @@ def fetch_train(categories):
     return fetch_20newsgroups(
         subset = 'train',
         categories = categories,
-        shuffle=True
+        shuffle=True,
+        random_state = 42
     )
 
 def fetch_test(categories):
     return fetch_20newsgroups(
         subset = 'test',
         categories = categories,
-        shuffle=True
+        shuffle=True,
+        random_state = 42
     )
 
 if __name__ == "__main__":
@@ -37,8 +39,8 @@ if __name__ == "__main__":
     cc = Counter(train.target)
     freqs = [cc[i] for i in cc]
 
-    plt.bar(range(1, 9), freqs, 1/1.5, color='blue')
-    plt.xticks(range(1, 9), train.target_names, rotation=90)
+    plt.bar(range(0, 8), freqs, 1/1.5, color='blue')
+    plt.xticks(range(0, 8), train.target_names, rotation=90)
 
     plt.subplots_adjust(bottom=0.45)
     plt.xlabel("Categories")
@@ -46,8 +48,8 @@ if __name__ == "__main__":
 
     plt.savefig('plots/histogram.png', format='png')
     plt.show()
-    num_ct = sum(freqs[0:3])
-    num_rec = sum(freqs[4:7])
+    num_ct = sum(freqs[0:4])
+    num_rec = sum(freqs[4:8])
 
 
     print "Number of documents in the Computer Technology class is ", num_ct
