@@ -1,8 +1,10 @@
 from sklearn import svm
 from sklearn.multiclass import OneVsRestClassifier, OneVsOneClassifier
 from sklearn.naive_bayes import GaussianNB
+from sklearn.pipeline import Pipeline
 
 import a
+import b
 import d
 import e
 
@@ -16,7 +18,16 @@ categories = [
 train = a.fetch_train(categories)
 test  = a.fetch_test(categories)
 
-train_lsi, test_lsi = d.fetch_lsi_representation(train, test)
+pipeline = Pipeline(
+    [
+        ('vectorize', b.get_vectorizer()),
+        ('tf-idf', b.get_tfid_transformer()),
+        ('svd', d.get_svd())
+    ]
+)
+
+train_lsi = pipeline.fit_transform(train.data)
+test_lsi = pipeline.transform(test.data)
 
 def perform_classification(clf):
     global train_lsi, test_lsi, train, test

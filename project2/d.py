@@ -23,7 +23,7 @@ def fetch_lsi_representation(train, test):
     )
 
     svd_matrix_train = pipeline.fit_transform(train.data)
-    svd_matrix_test = pipeline.fit_transform(test.data)
+    svd_matrix_test = pipeline.transform(test.data)
 
     return svd_matrix_train, svd_matrix_test
 

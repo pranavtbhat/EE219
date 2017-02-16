@@ -35,7 +35,9 @@ class StemTokenizer(object):
 def get_vectorizer():
     return CountVectorizer(
         tokenizer=StemTokenizer(),
-        lowercase=True
+        lowercase=True,
+        min_df = 2,
+        max_df = 0.99
     )
 
 def get_tfid_transformer():

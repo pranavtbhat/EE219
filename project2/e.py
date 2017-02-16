@@ -30,7 +30,7 @@ def plot_roc(actual, predicted, classifier_name):
     plt.title('ROC Curves for ' + classifier_name + 'Classifier')
     plt.legend(loc="best")
 
-    plt.savefig('plots/' + classifier_name, format='png')
+    plt.savefig('plots/' + classifier_name + '.png', format='png')
     plt.show()
 
 
