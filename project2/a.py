@@ -16,29 +16,39 @@ rec_act = [
     "rec.sport.hockey"
 ]
 
-train = fetch_20newsgroups(
-    subset = 'train',
-    categories = comp_tech + rec_act,
-    shuffle=True,
-    random_state=23
-)
-topic_names = train.target_names
+def fetch_train(categories):
+    return fetch_20newsgroups(
+        subset = 'train',
+        categories = categories,
+        shuffle=True
+    )
 
-cc = Counter(train.target)
-freqs = [cc[i] for i in cc]
+def fetch_test(categories):
+    return fetch_20newsgroups(
+        subset = 'test',
+        categories = categories,
+        shuffle=True
+    )
 
-plt.bar(range(1, 9), freqs, 1/1.5, color='blue')
-plt.xticks(range(1, 9), train.target_names, rotation=90)
+if __name__ == "__main__":
+    train = fetch_train(comp_tech + rec_act)
+    topic_names = train.target_names
 
-plt.subplots_adjust(bottom=0.45)
-plt.xlabel("Categories")
-plt.ylabel("Frequencies")
+    cc = Counter(train.target)
+    freqs = [cc[i] for i in cc]
 
-plt.savefig('plots/histogram.png', format='png')
-plt.show()
-num_ct = sum(freqs[0:3])
-num_rec = sum(freqs[4:7])
+    plt.bar(range(1, 9), freqs, 1/1.5, color='blue')
+    plt.xticks(range(1, 9), train.target_names, rotation=90)
+
+    plt.subplots_adjust(bottom=0.45)
+    plt.xlabel("Categories")
+    plt.ylabel("Frequencies")
+
+    plt.savefig('plots/histogram.png', format='png')
+    plt.show()
+    num_ct = sum(freqs[0:3])
+    num_rec = sum(freqs[4:7])
 
 
-print "Number of documents in the Computer Technology class is ", num_ct
-print "Number of documents in the Recreational activity class is", num_rec
+    print "Number of documents in the Computer Technology class is ", num_ct
+    print "Number of documents in the Recreational activity class is", num_rec
