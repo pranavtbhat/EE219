@@ -51,7 +51,6 @@ def matrix_factorize(R, W, k, reg_param=0, num_iterations=100):
         ) + eps
         V = np.maximum(eps, V * top / bottom)
 
-    print "Matrix was factorized with MSQE ", squared_error(R, W, U, V)
 
     return U, V
 
@@ -62,3 +61,4 @@ if __name__ == "__main__":
     for k in [10, 50, 100]:
         print "Setting k = ", k
         U, V = matrix_factorize(R, W, k)
+        print "Matrix was factorized with MSQE ", squared_error(R, W, U, V)
