@@ -25,7 +25,7 @@ def load_dataset():
 def squared_error(R, W, U, V):
     return np.sum((W * (R - np.dot(U, V))) ** 2)
 
-def matrix_factorize(R, W, k, reg_param=0, num_iterations=100):
+def matrix_factorize(R, W, k, reg_param=0, num_iterations=200):
     eps = 1e-5
 
     m, n = R.shape
