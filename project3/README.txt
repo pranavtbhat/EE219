@@ -19,8 +19,6 @@ numpy
 matplotlib 
 sklearn 
 nlkt 
-pandas
-scipy
 
 ###
 # Usage 
@@ -28,4 +26,7 @@ scipy
        
 python part<qno>.py
 
+<<<<<<< HEAD
+<qno> : 1,2,3,4,5
+=======
 <qno> : 1,2,3,4,5
