@@ -7,15 +7,17 @@ import nltk
 from nltk.stem.snowball import SnowballStemmer
 import string
 import re
+import pickle
+import os
 
 # Uncomment if the machine is missing punkt, wordnet or stopwords modules.
-nltk.download('punkt')
-nltk.download('wordnet')
-nltk.download('stopwords')
+# nltk.download('punkt')
+# nltk.download('wordnet')
+# nltk.download('stopwords')
 
 # RegExpTokenizer reduces term count from 29k to 25k
 
-def fetch_all_categories():
+def fetch_categories():
     return [
        "comp.graphics",
        "comp.os.ms-windows.misc",
@@ -42,6 +44,14 @@ def fetch_test(categories):
         categories = categories,
         shuffle=True,
         random_state = 42
+    )
+
+def fetch_all(categories):
+    return fetch_20newsgroups(
+        subset='all',
+        categories=categories,
+        shuffle=True,
+        random_state=42
     )
 
 class StemTokenizer(object):
@@ -74,9 +84,15 @@ def get_tfid_transformer():
         sublinear_tf=True
     )
 
-def get_train_idf():
+def get_data_idf():
+
+    if os.path.exists('pkl/data_idf.pkl'):
+        pkl_file = open('pkl/data_idf.pkl', 'rb')
+        data_idf = pickle.load(pkl_file)
+        pkl_file.close()
+        return data_idf
     
-    categories= fetch_all_categories()
+    categories= fetch_categories()
     
     pipeline = Pipeline(
         [
@@ -85,15 +101,19 @@ def get_train_idf():
         ]
     )
     
-    train = fetch_train(categories)
+    train = fetch_all(categories)
     
     print("%d documents" % len(train.filenames))
     print("%d categories" % len(train.target_names))
-    
-    train_idf = pipeline.fit_transform(train.data)
-    print "Number of terms in TF-IDF representation:",train_idf.shape[1]
 
-    return train_idf
+    data_idf = pipeline.fit_transform(train.data)
+    print "Number of terms in TF-IDF representation:",data_idf.shape[1]
+
+    output = open('pkl/data_idf.pkl', 'wb')
+    pickle.dump(data_idf, output)
+    output.close()
+
+    return data_idf
 
 if __name__ == "__main__":
-    get_train_idf()
+    get_data_idf()
