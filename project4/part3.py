@@ -1,8 +1,18 @@
 from sklearn.decomposition import TruncatedSVD
 import part1
+import part2
+from sklearn.cluster import KMeans
+
 from sklearn.pipeline import Pipeline
-from scipy.sparse import linalg as la
+#from scipy.sparse import linalg as la
+from numpy import linalg as la
+import scipy.sparse as sp
 import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import Normalizer
+
+
 
 if __name__ == "__main__":
     categories=[
@@ -16,33 +26,40 @@ if __name__ == "__main__":
         'rec.sport.hockey'
     ]
 
-    train = part1.fetch_train(categories)
-    test = part1.fetch_test(categories)
-
-    pipeline = Pipeline(
-        [
-            ('vectorize', part1.get_vectorizer()),
-            ('tf-idf', part1.get_tfid_transformer()),
-        ]
-    )
-
-    X_train = pipeline.fit_transform(train.data)
-    X_test  = pipeline.transform(test.data)
+    categories = part1.fetch_categories()
+    all = part1.fetch_all(categories)
+    data_idf = part1.get_data_idf()
 
 
-    # Observe how many singular values are "userful" and discard the rest
+    #Uncomment to plot variance vs #components
+    # svd = TruncatedSVD(n_components=4000)
+    # normalizer = Normalizer(copy=False)
+    # lsa = make_pipeline(svd, normalizer)
+    #
+    # X_lsa = lsa.fit_transform(data_idf)
+    # variance = svd.explained_variance_ratio_.cumsum()
+    # print variance
+    # plt.plot(variance)
+    # plt.savefig("plots/variance.png", format='png')
+    # plt.clf()
+    #
+    reduced_dim = 20
 
-    for k in range(10):
-        U, s, Vt = la.svds(X_train, k=10)
-        print np.diag(s)
+    for i in range(2,reduced_dim):
 
-    # pick one!
-    k = 5
-    svd = TruncatedSVD(n_components=k)
-    LSI_train = svd.fit_transform(X_train)
-    LSI_test = svd.transform(X_test)
+        print "Calculating for dimensions = ", i
+        svd = TruncatedSVD(n_components=reduced_dim)
+        normalizer = Normalizer(copy=False)
+        lsa = make_pipeline(svd, normalizer)
 
-    # Normalize?
+        X_lsa = lsa.fit_transform(data_idf)
+
+        labels = all.target // 4  # Since we want to cluster to 2 classes, and the input has 8 classes (0-7)
+        kmeans = KMeans(n_clusters=2).fit(data_idf)
+
+        part2.print_confusion_matrix(labels, kmeans.labels_)
+        part2.print_scores(labels, kmeans.labels_)
+
 
     # Non-linear transformation / logarithm transformation
 
