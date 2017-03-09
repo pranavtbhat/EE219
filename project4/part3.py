@@ -120,23 +120,6 @@ def non_linear_transformations(data_idf, reduced_dim):
     print("V-measure: %0.10f" % metrics.v_measure_score(labels, kmeans.labels_))
     print("Adjusted Rand-Index: %.10f" % metrics.adjusted_rand_score(labels, kmeans.labels_))
 
-    print "Calculating for sqrt features.."
-    svd = TruncatedSVD(n_components=reduced_dim)
-    poly = FunctionTransformer(np.sqrt)
-    normalizer = Normalizer(copy=False)
-    lsa = make_pipeline(svd, poly, normalizer)
-
-    X_lsa = lsa.fit_transform(data_idf)
-
-    labels = all.target // 4  # Since we want to cluster to 2 classes, and the input has 8 classes (0-7)
-    kmeans = KMeans(n_clusters=2).fit(X_lsa)
-
-    print metrics.confusion_matrix(labels, kmeans.labels_)
-    print("Homogeneity: %0.10f" % metrics.homogeneity_score(labels, kmeans.labels_))
-    print("Completeness: %0.10f" % metrics.completeness_score(labels, kmeans.labels_))
-    print("V-measure: %0.10f" % metrics.v_measure_score(labels, kmeans.labels_))
-    print("Adjusted Rand-Index: %.10f" % metrics.adjusted_rand_score(labels, kmeans.labels_))
-
 
 if __name__ == "__main__":
 
@@ -157,7 +140,21 @@ if __name__ == "__main__":
 
     calculate_scores_for_svd(data_idf, 2,80)
     calculate_scores_for_nmf(data_idf, 2,80)
-    non_linear_transformations(data_idf, 39)
+    non_linear_transformations(data_idf, 40)
 
+    print "Plotting TF-IDF"
+
+    labels = all.target // 4
+    svd = TruncatedSVD(n_components=2)
+    reduced_tfidf = svd.fit_transform(data_idf)
+    reduced_tfidf_log = np.log1p(reduced_tfidf)
+    x1 = reduced_tfidf_log[labels == 0][:, 0]
+    y1 = reduced_tfidf_log[labels == 0][:, 1]
+    x2 = reduced_tfidf_log[labels == 1][:, 0]
+    y2 = reduced_tfidf_log[labels == 1][:, 1]
+    plt.plot(x1,y1, 'r+')
+    plt.plot(x2,y2,'g+')
+    plt.savefig("plots/tf_idf_log.png", format='png')
+    plt.clf()
 
 
