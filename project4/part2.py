@@ -1,13 +1,6 @@
 from sklearn import metrics
 from sklearn.cluster import KMeans
-import numpy as np
 import part1
-
-from sklearn.decomposition import TruncatedSVD
-import scipy.sparse as sp
-import numpy as np
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import Normalizer
 
 def print_confusion_matrix(actual, predicted):
     print "Confusion Matrix is ", metrics.confusion_matrix(actual, predicted)
@@ -15,8 +8,8 @@ def print_confusion_matrix(actual, predicted):
 def print_scores(actual_labels, predicted_labels):
     print("Homogeneity: %0.3f" % metrics.homogeneity_score(actual_labels, predicted_labels))
     print("Completeness: %0.3f" % metrics.completeness_score(actual_labels, predicted_labels))
-    print("V-measure: %0.3f" % metrics.v_measure_score(actual_labels, predicted_labels))
     print("Adjusted Rand-Index: %.3f" % metrics.adjusted_rand_score(actual_labels, predicted_labels))
+    print("Adjusted Mutual info score: %.3f" % metrics.adjusted_mutual_info_score(actual_labels, predicted_labels))
 
 if __name__ == "__main__":
 
