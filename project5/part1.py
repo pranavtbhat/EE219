@@ -3,6 +3,7 @@ import datetime, time
 import numpy as np
 from os.path import join
 from tqdm import tqdm
+from matplotlib import plt
 
 hashtags = {
     'gohawks' : 188136,
@@ -68,12 +69,12 @@ for (htag,lcount) in hashtags.iteritems():
 
 
         print "Average number of tweets per hour", np.mean(num_tweets_in_hour)
-
         print "Average number of followers of authors", np.mean(sum_followers)
-
         print "Average number of retweets", np.mean(num_retweets_in_hour)
 
-
-
-
-
+        if htag in ['superbowl', "nfl"]:
+            plt.ylabel('Number of Tweets')
+            plt.xlabel('Hour')
+            plt.title('Number of Tweets per hour for {}'.format(htag))
+            plt.bar(range(len(num_tweets_in_hour)), num_retweets_in_hour)
+            plt.savefig(htag + '_statistics.png', format='png')
