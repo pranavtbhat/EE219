@@ -3,7 +3,7 @@ import datetime, time
 import numpy as np
 from os.path import join
 from tqdm import tqdm
-from matplotlib import plt
+from matplotlib.pyplot import plt
 
 hashtags = {
     'gohawks' : 188136,
