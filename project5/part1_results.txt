@@ -1,0 +1,36 @@
+> Calculating Statistics for #gohawks
+> Statistics for #gohawks
+> Total Number of Tweets : 188135
+> Average Number of Tweets per hour : 193.54379644
+> Average Number of Retweets : 2.01462779387
+> Average Number of Followers of Users : 1596.44360357
+> Calculating Statistics for #gopatriots
+> Statistics for #gopatriots
+> Total Number of Tweets : 26231
+> Average Number of Tweets per hour : 38.3832405913
+> Average Number of Retweets : 1.40013724219
+> Average Number of Followers of Users : 1292.20316579
+> Calculating Statistics for #nfl
+> Statistics for #nfl
+> Total Number of Tweets : 259023
+> Average Number of Tweets per hour : 279.550300946
+> Average Number of Retweets : 1.53853904866
+> Average Number of Followers of Users : 4394.25396783
+> Calculating Statistics for #patriots
+> Statistics for #patriots
+> Total Number of Tweets : 489712
+> Average Number of Tweets per hour : 499.420031779
+> Average Number of Retweets : 1.7828192897
+> Average Number of Followers of Users : 1607.44073544
+> Calculating Statistics for #sb49
+> Statistics for #sb49
+> Total Number of Tweets : 826950
+> Average Number of Tweets per hour : 1419.88619047
+> Average Number of Retweets : 2.51115182296
+> Average Number of Followers of Users : 2229.69488328
+> Calculating Statistics for #superbowl
+> Statistics for #superbowl
+> Total Number of Tweets : 1348766
+> Average Number of Tweets per hour : 1401.24455475
+> Average Number of Retweets : 2.38827417061
+> Average Number of Followers of Users : 3675.33948006

@@ -3,9 +3,6 @@ import numpy as np
 from os.path import join
 from tqdm import tqdm
 
-import matplotlib
-matplotlib.use('Agg')
-
 import matplotlib.pyplot as plt
 
 hashtags = {
@@ -26,7 +23,7 @@ for (htag,lcount) in hashtags.iteritems():
         cw = 1
         users = {}
 
-        # Fetch first tweet
+        # Fetch first tweet to figure our the start date (since tweets are sorted by time)
         first_tweet = json.loads(f.readline())
         f.seek(0, 0)
 
@@ -35,31 +32,34 @@ for (htag,lcount) in hashtags.iteritems():
 
         start_time = first_tweet.get('firstpost_date')
         end_of_window = start_time + cw * 3600
-        current_hour_count = 0
+        hourly_count = 0
+        tweet_count = 0
 
         for line in tqdm(f, total=lcount):
             tweet_data = json.loads(line)
             tweet_time = tweet_data.get('firstpost_date')
+            tweet_count += 1
 
             if tweet_time < end_of_window:
-                current_hour_count += 1
+                hourly_count += 1
             else:
-                number_of_retweets += tweet_data.get('metrics').get('citations').get('total')
-                num_tweets_in_hour.append(current_hour_count)
+                num_tweets_in_hour.append(hourly_count)
                 cw += 1
-                current_hour_count = 0
+                hourly_count = 0
                 end_of_window = start_time + cw * 3600
 
             user = tweet_data.get('tweet').get('user').get('id')
             users[user] = tweet_data.get('author').get('followers')
+            number_of_retweets += tweet_data['metrics']['citations']['total']
 
+        print "Total number of tweets", tweet_count
         print "Average number of tweets per hour", lcount / ((tweet_time - start_time) / 3600.0)
         print "Average number of followers of authors", np.mean(users.values())
-        print "Average number of retweets", number_of_retweets / lcount
+        print "Average number of retweets", number_of_retweets / (lcount + 0.0)
 
         if htag in ['superbowl', "nfl"]:
-            plt.ylabel('Number of Tweets')
-            plt.xlabel('Hour')
-            plt.title('Number of Tweets per hour for {}'.format(htag))
+            plt.ylabel('number of tweets')
+            plt.xlabel('hours')
+            plt.title('Number of tweets per hour for {}'.format(htag))
             plt.bar(range(len(num_tweets_in_hour)), num_tweets_in_hour)
-            plt.savefig(htag + '_statistics.png', format='png')
+            plt.savefig('plots/' + htag + '_statistics.png', format='png')
