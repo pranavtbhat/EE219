@@ -53,10 +53,8 @@ for (htag,lcount) in hashtags.iteritems():
         Y = Y[1:]
 
         # Train the regression model
-        stats_api.add_constant(X)
+        X = stats_api.add_constant(X)
         result = stats_api.OLS(Y, X).fit()
 
         print result.summary()
-
         print "--------------------------------------------------------------------------------"
-

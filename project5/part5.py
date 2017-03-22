@@ -18,7 +18,7 @@ hashtags = {
 # Dictionary to cache models
 models = {}
 
-def load_dataframe(filename):
+def load_dataframe(filename, lcount):
     with open(filename, 'r') as f:
         df = pd.DataFrame(index=range(lcount), columns=['dateTime', 'tweetCount', 'retweetCount', 'followerSum', 'maxFollowers', 'impressionCount',
             'favoriteCount', 'rankingScore', 'userID', 'numberLongTweets'])
@@ -73,18 +73,18 @@ for (htag,lcount) in hashtags.iteritems():
     print "#", htag + ":"
     print "###"
 
-    df = load_dataframe(join('tweet_data', 'tweets_#' + htag + '.txt'))
+    df = load_dataframe(join('tweet_data', 'tweets_#' + htag + '.txt'), lcount)
     firstLine = datetime(2015,2,1,8,0,0)
     secondLine = datetime(2015,2,1,20,0,0)
 
     # Data Frame for first Interval
-    models[(htag, 1)] = stats_api.OLS(*fetch_matrix(df[df.dateTime < firstLine]))
+    models[(htag, 1)] = stats_api.OLS(*fetch_matrix(df[df.dateTime < firstLine])).fit()
 
     # Data Frame for second Interval
-    models[(htag, 2)] = stats_api.OLS(*fetch_matrix(df[(df.dateTime > firstLine) & (df.dateTime < secondLine)]))
+    models[(htag, 2)] = stats_api.OLS(*fetch_matrix(df[(df.dateTime > firstLine) & (df.dateTime < secondLine)])).fit()
 
     # Data Frame for third Interval
-    models[(htag, 3)] = stats_api.OLS(*fetch_matrix(df[df.dateTime > secondLine]))
+    models[(htag, 3)] = stats_api.OLS(*fetch_matrix(df[df.dateTime > secondLine])).fit()
 
 
 print "Predicting test data"
@@ -107,7 +107,7 @@ for sample in [f for f in listdir("test_data") if isfile(join("test_data", f))]:
     period = rg.group(2)
 
     print "Predicting number of tweets for file", sample
-    X_test, Y_test = fetch_matrix(load_dataframe(join('test_data/', sample)))
+    Y_test, X_test = fetch_matrix(load_dataframe(join('test_data/', sample), 1000))
     print X_test.shape, Y_test.shape
     model = models[(period_to_htag[s_id][1:], int(period))]
 

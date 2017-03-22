@@ -52,14 +52,15 @@ for (htag,lcount) in hashtags.iteritems():
 
         # Extract features for each hourly interval
         for i,(interval,group) in enumerate(hourlySeries):
-            X[i, 0] = group.tweetCount.sum()        # Number of tweets
+            tweet_count = group.tweetCount.sum()
+            X[i, 0] = tweet_count                   # Number of tweets
             X[i, 1] = group.retweetCount.sum()      # Number of retweets
             X[i, 2] = group.followerSum.sum()       # Sum of follower counts
             X[i, 3] = group.maxFollowers.max()      # Maximum size following
             X[i, 4] = interval.hour                 # Hour of the day
-            X[i, 5] = group.impressionCount.sum()   # Sum of impression count
-            X[i, 6] = group.favoriteCount.sum()     # Sum of favorites
-            X[i, 7] = group.rankingScore.sum()      # Sum of rankings
+            X[i, 5] = group.impressionCount.sum() / tweet_count   # Sum of impression count
+            X[i, 6] = group.favoriteCount.sum() / tweet_count    # Sum of favorites
+            X[i, 7] = group.rankingScore.sum() / tweet_count     # Sum of rankings
             X[i, 8] = group.userID.nunique()        # Number of unique users tweeting
             X[i, 9] = group.longTweet.sum()         # Number of long tweets
 
