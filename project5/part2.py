@@ -4,6 +4,7 @@ from os.path import join
 from tqdm import tqdm
 import statsmodels.api as stats_api
 from datetime import datetime
+import pandas as pd
 
 hashtags = {
     'gohawks' : 188136,
@@ -14,68 +15,48 @@ hashtags = {
     'superbowl' : 1348767
 }
 
-print "Extracting X from tweets"
+print "Extracting features from tweets"
 for (htag,lcount) in hashtags.iteritems():
+    print "###"
     print "#", htag + ":"
+    print "###"
 
     with open(join('tweet_data', 'tweets_#' + htag + '.txt'), 'r') as f:
-        first_tweet = json.loads(f.readline())
-        f.seek(0, 0)
-        start_time = first_tweet.get('firstpost_date')
-
-        # Initialize X
-        Y = []
-        X = []
-        tweets_per_hour = 0
-        retweets_per_hour = 0
-        number_of_followers_hour = 0
-        max_number_of_followers = 0
-
-        # Hourly window traversal
-        cw = 1
-        end_of_window = start_time + cw * 3600
-
-        for line in tqdm(f, total=lcount):
+        df = pd.DataFrame(index=range(lcount), columns=['dateTime', 'tweetCount', 'retweetCount', 'followerSum', 'maxFollowers'])
+        for i, line in tqdm(enumerate(f), total=lcount):
             tweet_data = json.loads(line)
-            tweet_time = tweet_data.get('firstpost_date')
+            date = datetime.fromtimestamp(tweet_data['firstpost_date'])
+            df.set_value(i, 'dateTime', date)
+            df.set_value(i, 'tweetCount', 1)
+            df.set_value(i, 'retweetCount', tweet_data['metrics']['citations']['total'])
+            df.set_value(i, 'followerSum', tweet_data['author']['followers'])
+            df.set_value(i, 'maxFollowers', tweet_data['author']['followers'])
 
-            if tweet_time < end_of_window:
-                tweets_per_hour += 1
-                tweets_per_hour += tweet_data['metrics']['citations']['total']
-                number_of_followers_hour += tweet_data['author']['followers']
-                max_number_of_followers = max(max_number_of_followers, tweet_data['author']['followers'])
+        df = df.set_index('dateTime')
+        hourlySeries = df.groupby(pd.TimeGrouper(freq='60Min'))
 
-            else:
-                X.append([
-                    retweets_per_hour,
-                    number_of_followers_hour,
-                    max_number_of_followers,
-                    int(datetime.fromtimestamp(
-                        tweet_data.get('firstpost_date')).strftime("%H")
-                    )
-                ])
-                Y.append(tweets_per_hour)
+        X = np.zeros((len(hourlySeries), 5))
+        Y = np.zeros((len(hourlySeries)))
 
-                # Reinitialize X for new hour
-                cw += 1
-                end_of_window = start_time + cw * 3600
-                tweets_per_hour = 1
-                retweets_per_hour = tweet_data['metrics']['citations']['total']
-                number_of_followers_hour = tweet_data['author']['followers']
-                max_number_of_followers = tweet_data['author']['followers']
+        for i,(interval,group) in enumerate(hourlySeries):
+            X[i, 0] = group.tweetCount.sum()
+            X[i, 1] = group.retweetCount.sum()
+            X[i, 2] = group.followerSum.sum()
+            X[i, 3] = group.maxFollowers.max()
+            X[i, 4] = interval.hour
+
+            Y[i] = group.tweetCount.sum()
 
 
         # Shift X and Y forward by one to reflect next hours predictions
-        Y = list(reversed(np.array(Y[1:])))
-        X = X[1:]
+        X = np.nan_to_num(X[:-1])
+        Y = Y[1:]
 
         # Train the regression model
+        stats_api.add_constant(X)
         result = stats_api.OLS(Y, X).fit()
 
-        print "The fitted parameters are", result.params
-        print "errors", result.bse
+        print result.summary()
 
-        print "p values", result.pvalues
-        print "t values", result.tvalues
+        print "--------------------------------------------------------------------------------"
 
-        print "Accuracy", result.rsquared * 100

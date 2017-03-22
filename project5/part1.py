@@ -31,6 +31,7 @@ for (htag,lcount) in hashtags.iteritems():
         number_of_retweets = 0
 
         start_time = first_tweet.get('firstpost_date')
+        print start_time
         end_of_window = start_time + cw * 3600
         hourly_count = 0
         tweet_count = 0
