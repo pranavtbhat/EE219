@@ -4,8 +4,9 @@ from os.path import join
 from tqdm import tqdm
 import statsmodels.api as stats_api
 from datetime import datetime
-import collections
-from sklearn.cross_validation import KFold
+import pandas as pd
+from sklearn.metrics import mean_absolute_error
+from sklearn.model_selection import KFold
 
 hashtags = {
     'gohawks' : 188136,
@@ -19,102 +20,89 @@ hashtags = {
 feature_names = ['Number of Tweets', 'Number of Retweets', 'Number of Followers', 'Max Number of Followers',
                   'Impression Count', 'Favourite Count', 'Ranking Score', 'Hour of Day', 'Number of Users tweeting',
                   'Number of Long Tweets']
-                  
 
-def get_feature_dict():
-    features = dict.fromkeys(feature_names, 0)
-    features['Number of Users tweeting'] = []
-    return features
-            
-def get_feature_stats(features, tweet_data):
-    features['Number of Tweets'] += 1
-    features['Number of Retweets'] += tweet_data.get('metrics').get('citations').get('total')
-    follower_count = tweet_data.get('author').get('followers')
-    features['Number of Followers'] += follower_count
-    features['Impression Count'] += tweet_data.get('metrics').get('impressions')
-    if follower_count > features['Max Number of Followers']:
-        features['Max Number of Followers'] = follower_count
-    features['Ranking Score'] += tweet_data.get('metrics').get('ranking_score')
-    features['Hour of Day'] = int(datetime.fromtimestamp(tweet_data.get('firstpost_date')).strftime("%H"))
-    features['Favourite Count'] += tweet_data.get('tweet').get('favorite_count')
-    features['Number of Users tweeting'].append(tweet_data.get('tweet').get('user').get('id'))
-    features['Number of Long Tweets'] += 1 if len(tweet_data.get('title')) > 100 else 0
-    return features
+def cross_validate(X, Y):
+    errors = []
+    for train_index, test_index in KFold(n_splits=10).split(X):
+        X_train, X_test = X[train_index], X[test_index]
+        Y_train, Y_test = Y[train_index], Y[test_index]
 
-def get_features(features):
-    extract = []
-    for i in feature_names:
-        extract.append(features[i])
-    extract[8] = len(set(extract[8]))
-    return extract
-        
-def reset_features_dict():
-    features = dict.fromkeys(feature_names, 0)
-    features['Number of Users tweeting'] = []
-    return features
-    
-if __name__ == "__main__":
-    for (htag,lcount) in hashtags.iteritems():
-        print "#", htag + ":"
-    
-        with open(join('tweet_data', 'tweets_#' + htag + '.txt'), 'r') as f:
-            first_tweet = json.loads(f.readline())
-            f.seek(0, 0)
-            start_time = first_tweet.get('firstpost_date')
-    
-            # Initialize X
-            Y = []
-            X = []
-            features = get_feature_dict()
-            tweets_per_hour = 0
-            retweets_per_hour = 0
-            number_of_followers_hour = 0
-            max_number_of_followers = 0
-    
-            # Hourly window traversal
-            cw = 1
-            end_of_window = start_time + cw * 3600
-    
-            for line in tqdm(f, total=lcount):
-                tweet_data = json.loads(line)
-                tweet_time = tweet_data.get('firstpost_date')
-    
-                if tweet_time < end_of_window:
-                    features = get_feature_stats(features, tweet_data)
-                else:
-                    extracted_features = get_features(features)
-                    Y.append(extracted_features[0])
-                    X.append(extracted_features[1:])
-        
-                    features = reset_features_dict()  # reset features for new window calculation
-                    features = get_feature_stats(features, tweet_data)  # update stats of tweet
-        
-                    cw += 1
-                    end_of_window = start_time + cw * 3600  # update window
-    
-            Y = np.roll(np.array(Y), -1)
-            Y = collections.deque(Y)
-            Y.rotate(-1)
-            Y = np.delete(Y,-1)
-            del(X[-1])
-            
-            X = np.array(X)
-            Y = np.array(Y)
-            average_error = []
-            kf = KFold(len(X), n_folds=10, shuffle=False, random_state=None)
+        lm = stats_api.OLS(Y_train, X_train).fit()
+        Y_pred = lm.predict(X_test)
 
-            for train_index, test_index in kf:
-                X_train, X_test = X[train_index], X[test_index]
-                y_train, y_test = Y[train_index], Y[test_index]
-        
-                y_train = collections.deque(y_train)
-                y_train.rotate(-1)
-                y_train = list(y_train)
-                X_train = list(X_train)
-        
-                result = stats_api.OLS(y_train, X_train).fit()
-                test_prediction = result.predict(X_test)
-                average_error.append(np.mean(abs(test_prediction - y_test)))
-                
-            print "10 fold error", average_error
-            print "Average error", np.mean(average_error)
+        errors.append(mean_absolute_error(Y_test, Y_pred))
+
+    return errors
+
+def fetch_matrix(df):
+    df = df.set_index('dateTime')
+    hourlySeries = df.groupby(pd.TimeGrouper(freq='60Min'))
+
+    X = np.zeros((len(hourlySeries), 10))
+    Y = np.zeros((len(hourlySeries), 1))
+
+    # Extract features for each hourly interval
+    for i,(interval,group) in enumerate(hourlySeries):
+        X[i, 0] = group.tweetCount.sum()        # Number of tweets
+        X[i, 1] = group.retweetCount.sum()      # Number of retweets
+        X[i, 2] = group.followerSum.sum()       # Sum of follower counts
+        X[i, 3] = group.maxFollowers.max()      # Maximum size following
+        X[i, 4] = interval.hour                 # Hour of the day
+        X[i, 5] = group.impressionCount.sum()   # Sum of impression count
+        X[i, 6] = group.favoriteCount.sum()     # Sum of favorites
+        X[i, 7] = group.rankingScore.sum()      # Sum of rankings
+        X[i, 8] = group.userID.nunique()        # Number of unique users tweeting
+        X[i, 9] = group.longTweet.sum()         # Number of long tweets
+
+        Y[i, 0] = group.tweetCount.sum()
+
+
+    # Shift X and Y forward by one to reflect next hours predictions
+    X = np.nan_to_num(X[:-1])
+    Y = Y[1:]
+
+    return X, Y
+
+
+print "Extracting features from tweets"
+for (htag,lcount) in hashtags.iteritems():
+    print "###"
+    print "#", htag + ":"
+    print "###"
+
+    with open(join('tweet_data', 'tweets_#' + htag + '.txt'), 'r') as f:
+        df = pd.DataFrame(index=range(lcount), columns=['dateTime', 'tweetCount', 'retweetCount', 'followerSum', 'maxFollowers', 'impressionCount',
+            'favoriteCount', 'rankingScore', 'userID', 'numberLongTweets'])
+
+        for i, line in tqdm(enumerate(f), total=lcount):
+            tweet_data = json.loads(line)
+            date = datetime.fromtimestamp(tweet_data['firstpost_date'])
+            df.set_value(i, 'dateTime', date)
+            df.set_value(i, 'tweetCount', 1)
+            df.set_value(i, 'retweetCount', tweet_data['metrics']['citations']['total'])
+            df.set_value(i, 'followerSum', tweet_data['author']['followers'])
+            df.set_value(i, 'maxFollowers', tweet_data['author']['followers'])
+            df.set_value(i, 'impressionCount', tweet_data.get('metrics').get('impressions'))
+            df.set_value(i, 'favoriteCount', tweet_data.get('tweet').get('favorite_count'))
+            df.set_value(i, 'rankingScore', tweet_data.get('metrics').get('ranking_score'))
+            df.set_value(i, 'userID', tweet_data.get('tweet').get('user').get('id'))
+            df.set_value(i, 'longTweet', tweet_data.get('title') > 100)
+
+
+        firstLine = datetime(2015,2,1,8,0,0)
+        secondLine = datetime(2015,2,1,20,0,0)
+
+        # Data Frame for first Interval
+        df1 = df[df.dateTime < firstLine]
+        print "Running cross validation for values before the Feb. 1, 8:00 a.m."
+        print "Mean absolute error was", np.mean(cross_validate(*fetch_matrix(df1)))
+
+        # Data Frame for second Interval
+        df2 = df[(df.dateTime > firstLine) & (df.dateTime < secondLine)]
+        print "Running cross validation for values between Feb. 1, 8:00 a.m. and 8:00 p.m."
+        print "Mean absolute error was", np.mean(cross_validate(*fetch_matrix(df2)))
+
+        # Data Frame for third Interval
+        df3 = df[df.dateTime > secondLine]
+        print "Running cross validation for values after Feb. 1, 8:00 p.m."
+        print "Mean absolute error was", np.mean(cross_validate(*fetch_matrix(df3)))

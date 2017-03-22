@@ -16,8 +16,8 @@ hashtags = {
     'superbowl' : 1348767
 }
 
-feature_names = ['Number of Tweets', 'Number of Retweets', 'Number of Followers', 'Max Number of Followers',
-                  'Impression Count', 'Favourite Count', 'Ranking Score', 'Hour of Day', 'Number of Users tweeting',
+feature_names = ['Number of Tweets', 'Number of Retweets', 'Number of Followers', 'Max Number of Followers', 'Hour of Day',
+                  'Impression Count', 'Favourite Count', 'Ranking Score', 'Number of Users tweeting',
                   'Number of Long Tweets']
 
 print "Extracting features from tweets"
@@ -66,21 +66,25 @@ for (htag,lcount) in hashtags.iteritems():
             Y[i] = group.tweetCount.sum()
 
 
-        # Shift X and Y forward by one to reflect next hours predictions
+        # Remove nans
         X = np.nan_to_num(X[:-1])
         Y = Y[1:]
 
         # Train the regression model
         stats_api.add_constant(X)
         result = stats_api.OLS(Y, X).fit()
-
         print result.summary()
-        # for i in range(1, 4):
-        #     plt.figure(hashtags.keys().index(htag) + i)
-        #     plt.title("Scatter Plot {}".format(htag))
-        #     plt.xlabel("Number of Tweets / per hour")
-        #     plt.ylabel(feature_names[p_values[i - 1]])
-        #     plt.scatter(np.roll(np.array(Y), 1), np.array(X)[:, p_values[i - 1]])
-        #     plt.savefig("plots/#{0} - Tweets vs {1}.png".format(htag, feature_names[p_values[i-1]]))
+
+        best_features = result.pvalues.argsort()[:3]
+        print "Best features selected are:"
+
+        for index in best_features:
+            print feature_names[index]
+            plt.title("Scatter plot for {0} against {1}".format(htag, feature_names[index]))
+            plt.xlabel("Number of tweets/hour")
+            plt.ylabel(feature_names[index])
+            plt.scatter(Y, X[:, index])
+            plt.savefig("plots/#{0}vs{1}.png".format(htag, feature_names[index]))
+            plt.clf()
 
         print "--------------------------------------------------------------------------------"
