@@ -1,0 +1,44 @@
+Training Models First
+###
+# nfl:
+###
+###
+# superbowl:
+###
+###
+# gohawks:
+###
+Predicting test data
+Predicting number of tweets for file sample4_period1.txt
+Predictions for the 5 hour window are: [ 421.93493427  242.13126492  219.97467374  211.44456637  233.68527438]
+Prediction errors are: 61.0664466926
+Predicting number of tweets for file sample1_period1.txt
+Predictions for the 5 hour window are: [ 120.67528501   74.33452709  365.22609803   91.79475528  241.85487197]
+Prediction errors are: 91.8592053626
+Predicting number of tweets for file sample2_period2.txt
+Predictions for the 5 hour window are: [-215130.58604095 -136018.97190064 -243351.06529395  -18030.65337425
+  619759.19160405]
+Prediction errors are: 254225.293643
+Predicting number of tweets for file sample10_period3.txt
+Predictions for the 5 hour window are: [ 21.54767249  12.14623432  17.09953028   6.60731733  -0.67345831]
+Prediction errors are: 49.2545407765
+Predicting number of tweets for file sample9_period2.txt
+Predictions for the 5 hour window are: [-225323.21468808 -264430.70549207 -310877.82347661 -350551.88479321
+ -293367.46133532]
+Prediction errors are: 290826.617957
+Predicting number of tweets for file sample3_period3.txt
+Predictions for the 5 hour window are: [ 444.96831319  694.13074212  684.67592467  820.51943508  764.7865728 ]
+Prediction errors are: 167.758502427
+Predicting number of tweets for file sample7_period3.txt
+Predictions for the 5 hour window are: [ 97.0234781   87.51643579  69.44060551  82.94527867  47.64957523]
+Prediction errors are: 27.2458533297
+Predicting number of tweets for file sample6_period2.txt
+Predictions for the 5 hour window are: [ -220975.10097178   400152.4718343   4273431.14093614  3643867.76718684
+  2565853.17568231]
+Prediction errors are: 2185113.33132
+Predicting number of tweets for file sample8_period1.txt
+Predictions for the 5 hour window are: [ 71.2765936   95.63047154  83.91076943  68.60886816]
+Prediction errors are: 35.2183788828
+Predicting number of tweets for file sample5_period1.txt
+Predictions for the 5 hour window are: [ 333.46461704  568.17487772  296.44307693  435.64508134  244.18933273]
+Prediction errors are: 128.220319565

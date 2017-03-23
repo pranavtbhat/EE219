@@ -1,0 +1,26 @@
+Loading superbowl tweets
+Computing the LSI representation of the dataset
+Statistics of SVM classifier:
+Accuracy is  78.7883762929
+Precision is  83.0301535271
+Recall is  77.7657901242
+Confusion Matrix is  [[1703 1175]
+ [ 117 3096]]
+Statistics of AdaBoost Classifier are
+Accuracy is  78.4436053193
+Precision is  79.957344784
+Recall is  77.7704781241
+Confusion Matrix is  [[1886  992]
+ [ 321 2892]]
+Statistics of Random Forest Classifier are
+Accuracy is  73.6660646856
+Precision is  79.7777497352
+Recall is  72.3544162472
+Confusion Matrix is  [[1396 1482]
+ [ 122 3091]]
+Statistics of Neural Network Classifier are
+Accuracy is  78.9032999507
+Precision is  82.777000809
+Recall is  77.9200074748
+Confusion Matrix is  [[1728 1150]
+ [ 135 3078]]

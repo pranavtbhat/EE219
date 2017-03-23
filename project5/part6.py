@@ -138,6 +138,7 @@ def plot_roc(actual, predicted, classifier_name):
 
     plt.savefig('plots/' + classifier_name + '.png', format='png')
     plt.show()
+    plt.clf()
 
 
 def classify(X, Y, classifier, cname):
@@ -187,7 +188,7 @@ with open(join('tweet_data', 'tweets_#superbowl.txt'), 'r') as f:
     # Randomly shuffle data
     indexes = range(X.shape[0])
     random.shuffle(indexes)
-    indexes = indexes[:5000]
+    indexes = indexes
     X_ = X[indexes, :]
     Y_ = Y[indexes]
 
