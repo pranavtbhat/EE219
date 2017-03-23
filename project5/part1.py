@@ -65,7 +65,7 @@ for (htag,lcount) in hashtags.iteritems():
             plt.xlabel('Hours')
             plt.title('Number of tweets per hour for {}'.format(htag))
             plt.bar(range(len(tweet_counts)),tweet_counts)
-            plt.show()
-            # plt.savefig('plots/' + htag + '_statistics.png', format='png')
+            plt.savefig('plots/' + htag + '_statistics.png', format='png')
+            plt.clf()
 
         print "--------------------------------------------------------------------------------"
