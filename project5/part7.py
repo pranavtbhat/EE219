@@ -6,6 +6,11 @@ import datetime
 import re
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+from sumy.parsers.plaintext import PlaintextParser
+from sumy.nlp.tokenizers import Tokenizer
+from sumy.summarizers.lex_rank import LexRankSummarizer
+
 
 hashtags = {
     'gohawks' : 188136,
@@ -127,3 +132,34 @@ plt.scatter(sbs, rs[bs.argsort()])
 
 create_dump(bs)
 
+print("Summary of Tweets for")
+
+output = open("tweet_data/tweet_summary.txt", 'w')
+for file in ["ts/2015-02-01 17:21:44.txt"]: #Selecting an example event
+
+    #Selecting only 500 tweets - since summarizing takes a lot of time.
+    os.system("head -500 ts/2015-02-01\ 17:21:44.txt > ts/2015-02-01\ 17:21:44.txt1")
+    os.system("mv ts/2015-02-01\ 17:21:44.txt1 ts/2015-02-01\ 17:21:44.txt")
+    output.write("**********Summary of Tweets for "+file+"**************\n")
+
+    print("-" * 100)
+    parser = PlaintextParser.from_file(file, Tokenizer("english"))
+    summarizer = LexRankSummarizer()
+    summary = summarizer(parser.document, 20)  # Summarize the document with 20 tweets
+    tweet_list = []
+    top_tweet_count = 0
+    ranked_tweets = {}
+    for sentence in summary:
+        # Filter out tweets with exact same message
+        orig = str(sentence)
+        t = orig.lower()
+        t = ''.join(sorted(t))
+        l = [x for x in tweet_list if t == x]
+        if (len(l) > 0):
+            continue
+        tweet_list.append(orig)
+    print tweet_list
+    count = 0
+    output.write("-" * 50 + "\n")
+    output.write("" + str(tweet_list) + " \n")
+    output.write("-" * 50 + "\n")
