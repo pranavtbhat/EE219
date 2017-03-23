@@ -91,6 +91,9 @@ for (htag,lcount) in hashtags.iteritems():
 
         firstLine = datetime(2015,2,1,8,0,0)
         secondLine = datetime(2015,2,1,20,0,0)
+        
+        print "Errors:", cross_validate(*fetch_matrix(df))
+        print "Mean absolute error was", np.mean(cross_validate(*fetch_matrix(df)))
 
         # Data Frame for first Interval
         df1 = df[df.dateTime < firstLine]

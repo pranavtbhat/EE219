@@ -2,6 +2,8 @@ Extracting features from tweets
 ###
 # superbowl:
 ###
+Errors: [14.034457794831274, 13.656351255772639, 13.981964892146753, 25.040436026905571, 160.78631468152614, 1214.5547168752821, 631.70586881147892, 1661.6946343730181, 6909.5811335676963, 896.91037866031547]
+Mean absolute error was 1154.19462569
 Running cross validation for values before the Feb. 1, 8:00 a.m.
 Mean absolute error was 177.842898807
 Running cross validation for values between Feb. 1, 8:00 a.m. and 8:00 p.m.
@@ -11,6 +13,8 @@ Mean absolute error was 278.729211931
 ###
 # nfl:
 ###
+Errors: [3.8214504030405201, 5.439617908820626, 7.5767854565489241, 28.191163087020104, 205.33051726558409, 107.74583782065231, 84.291521717472747, 210.12228446109518, 422.12425830283348, 150.04188884197404]
+Mean absolute error was 122.468532527
 Running cross validation for values before the Feb. 1, 8:00 a.m.
 Mean absolute error was 84.9503720526
 Running cross validation for values between Feb. 1, 8:00 a.m. and 8:00 p.m.
@@ -20,6 +24,8 @@ Mean absolute error was 109.728257091
 ###
 # sb49:
 ###
+Errors: [38.569684995843581, 32.697922433823472, 38.12788510233888, 30.551808234899635, 49.480666123988861, 88.85486287370108, 1502.4301458659456, 4996.6346425174106, 1184.8827770464193, 178.97925322968118]
+Mean absolute error was 814.120964842
 Running cross validation for values before the Feb. 1, 8:00 a.m.
 Mean absolute error was 48.1042195971
 Running cross validation for values between Feb. 1, 8:00 a.m. and 8:00 p.m.
@@ -29,6 +35,8 @@ Mean absolute error was 119.675766618
 ###
 # patriots:
 ###
+Errors: [109.45794910588903, 110.33096310074056, 108.65172219132479, 108.85752848312399, 183.96756135119202, 718.4636672720768, 420.83715398118557, 199.74985029315698, 4386.8343704276258, 81.4776428022722]
+Mean absolute error was 642.862840901
 Running cross validation for values before the Feb. 1, 8:00 a.m.
 Mean absolute error was 164.885439257
 Running cross validation for values between Feb. 1, 8:00 a.m. and 8:00 p.m.
@@ -38,6 +46,8 @@ Mean absolute error was 87.2586774597
 ###
 # gohawks:
 ###
+Errors: [52.409934778450413, 52.362995879501554, 51.219260731743326, 55.722055065059322, 170.27807088384361, 678.11893681951267, 150.4010800891983, 138.50873498994298, 718.41174690482433, 49.224483114084805]
+Mean absolute error was 211.665729926
 Running cross validation for values before the Feb. 1, 8:00 a.m.
 Mean absolute error was 198.401059539
 Running cross validation for values between Feb. 1, 8:00 a.m. and 8:00 p.m.
@@ -47,6 +57,8 @@ Mean absolute error was 4563.26622798
 ###
 # gopatriots:
 ###
+Errors: [6.0455714709508186, 6.4924086282692093, 12.396162526977692, 144.5202423898379, 23.678046444660204, 20.346318765272457, 15.058015897491012, 15.740993700174132, 227.04633347233607, 5.527627798883068]
+Mean absolute error was 47.6851721095
 Running cross validation for values before the Feb. 1, 8:00 a.m.
 Mean absolute error was 15.3373563961
 Running cross validation for values between Feb. 1, 8:00 a.m. and 8:00 p.m.
