@@ -16,6 +16,7 @@ hashtags = {
     'superbowl' : 1348767
 }
 
+{'gopatriots' : 26232}.iteritems()
 print "Computing Statistics for hashtags:"
 for (htag,lcount) in hashtags.iteritems():
     print "###"
@@ -23,16 +24,18 @@ for (htag,lcount) in hashtags.iteritems():
     print "###"
 
     with open(join('tweet_data', 'tweets_#' + htag + '.txt'), 'r') as f:
-        df = pd.DataFrame(index=range(lcount), columns=['dateTime', 'tweetCount', 'uid', 'retweetCount', 'followerSum', 'maxFollowers'])
+        df = pd.DataFrame(index=range(lcount), columns=['dateTime', 'tweetCount', 'retweetCount'])
+        users = {}
+
         for i, line in tqdm(enumerate(f), total=lcount):
             tweet_data = json.loads(line)
             date = datetime.fromtimestamp(tweet_data['firstpost_date'])
             df.set_value(i, 'dateTime', date)
             df.set_value(i, 'tweetCount', 1)
-            df.set_value(i, 'uid', tweet_data.get('tweet').get('user').get('id'))
             df.set_value(i, 'retweetCount', tweet_data['metrics']['citations']['total'])
-            df.set_value(i, 'followerSum', tweet_data['author']['followers'])
-            df.set_value(i, 'maxFollowers', tweet_data['author']['followers'])
+
+            uid = tweet_data.get('tweet').get('user').get('id')
+            users[uid] = tweet_data['author']['followers']
 
         df = df.set_index('dateTime')
         hourlySeries = df.groupby(pd.TimeGrouper(freq='60Min'))
@@ -41,27 +44,28 @@ for (htag,lcount) in hashtags.iteritems():
         follower_counts = []
         retweet_counts = []
 
-
         for i,(interval,group) in enumerate(hourlySeries):
             tweet_count = group.tweetCount.sum()
             tweet_counts.append(tweet_count)
 
-            follower_counts.append(group.followerSum.sum() / float(group.uid.nunique()))
-
-            retweet_counts.append(group.retweetCount.sum() / tweet_count)
+            if tweet_count > 0:
+                retweet_counts.append(group.retweetCount.sum() / tweet_count)
+            else:
+                retweet_counts.append(0)
 
         print "###"
         print "#", htag
         print "####"
         print "Average number of tweets/hr is", np.mean(tweet_counts)
-        print "Average number of followers per user is", np.mean(follower_counts)
+        print "Average number of followers per user is", sum(users.values()) / float(len(users.keys()))
         print "Average number of retweets per tweet is", np.mean(retweet_counts)
 
-        if htag in ['#superbowl', "#nfl"]:
+        if htag in ['superbowl', "nfl"]:
             plt.ylabel('Number of tweets')
             plt.xlabel('Hours')
             plt.title('Number of tweets per hour for {}'.format(htag))
             plt.bar(range(len(tweet_counts)),tweet_counts)
-            plt.savefig('plots/' + htag + '_statistics.png', format='png')
+            plt.show()
+            # plt.savefig('plots/' + htag + '_statistics.png', format='png')
 
         print "--------------------------------------------------------------------------------"
