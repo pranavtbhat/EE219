@@ -1,7 +1,6 @@
 import json
 import numpy as np
-from os import listdir
-from os.path import isfile, join
+from os.path import join
 from tqdm import tqdm
 import statsmodels.api as stats_api
 from datetime import datetime
@@ -95,20 +94,32 @@ period_to_htag = {
     "4" : "#nfl",
     "5" : "#nfl",
     "6" : "#superbowl",
-    "7" : "#nfl",
+    "7" : "#superbowl",
     "8" : "#nfl",
     "9" : "#superbowl",
     "10": "#nfl"
 }
 
-for sample in [f for f in listdir("test_data") if isfile(join("test_data", f))]:
+test_data = {
+    "sample10_period3.txt" : 365,
+    "sample1_period1.txt" : 730,
+    "sample2_period2.txt" : 212273,
+    "sample3_period3.txt" : 3638,
+    "sample4_period1.txt" : 1646,
+    "sample5_period1.txt" : 2059,
+    "sample6_period2.txt" : 205554,
+    "sample7_period3.txt" : 528,
+    "sample8_period1.txt" : 229,
+    "sample9_period2.txt" : 11311
+}
+
+for (sample,lcount) in test_data.iteritems():
     rg = re.search('.*?(\\d+).*?(\\d+)', sample)
     s_id = rg.group(1)
     period = rg.group(2)
 
     print "Predicting number of tweets for file", sample
-    Y_test, X_test = fetch_matrix(load_dataframe(join('test_data/', sample), 1000))
-    print X_test.shape, Y_test.shape
+    Y_test, X_test = fetch_matrix(load_dataframe(join('test_data/', sample), lcount))
     model = models[(period_to_htag[s_id][1:], int(period))]
 
     Y_pred = model.predict(X_test)
