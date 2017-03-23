@@ -2,9 +2,10 @@ import json
 from os.path import join
 from tqdm import tqdm
 import pandas as pd
-from datetime import datetime
+import datetime
 import re
 import matplotlib.pyplot as plt
+import numpy as np
 
 hashtags = {
     'gohawks' : 188136,
@@ -15,8 +16,8 @@ hashtags = {
     'superbowl' : 1348767
 }
 
-int_period_start = datetime(2015,2,1,14,0,0)
-int_period_end = datetime(2015,2,1,20,0,0)
+int_period_start = datetime.datetime(2015,2,1,14,0,0)
+int_period_end = datetime.datetime(2015,2,1,20,0,0)
 
 def make_files():
     df = pd.DataFrame(index=range(sum(hashtags.values())), columns=['dateTime', 'language', 'tweetCount', 'text'])
@@ -29,7 +30,7 @@ def make_files():
         with open(join('tweet_data', 'tweets_#' + htag + '.txt'), 'r') as f:
             for i, line in tqdm(enumerate(f), total=lcount):
                 tweet_data = json.loads(line)
-                date = datetime.fromtimestamp(tweet_data['firstpost_date'])
+                date = datetime.datetime.fromtimestamp(tweet_data['firstpost_date'])
                 language = tweet_data['tweet']['lang']
 
                 text = tweet_data['tweet']['text']
@@ -44,9 +45,9 @@ def make_files():
     df = df[df.dateTime.apply(lambda x : x < int_period_end)]
     df.to_csv(join('frames/', "all" + '.txt'), sep='\t')
 
-def identify_peaks(htag):
-    df = pd.read_csv('frames/' + htag + '.txt', sep = '\t')
-    df.dateTime = df.dateTime.apply(lambda x : datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
+def identify_peaks():
+    df = pd.read_csv('frames/all.txt', sep = '\t')
+    df.dateTime = df.dateTime.apply(lambda x : datetime.datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
     df = df.set_index('dateTime')
 
     tenSecondSeries = df.groupby(pd.TimeGrouper(freq='1S'))
@@ -61,28 +62,21 @@ def identify_peaks(htag):
 
 
 def get_ratios():
-    secondsAll = None
-    tweetCountsAll = [0 for i in range(32200)]
-
-    for htag in hashtags.keys():
-        seconds, tweetCounts = identify_peaks(htag)
-
-        if secondsAll == None:
-            secondsAll = seconds
-
-        tweetCountsAll += tweetCounts[:32201]
-
     secs = []
     ratios = []
-    for i in range(0, len(secondsAll)):
+
+    print "Fetching Second wise data"
+    seconds, tweetCounts = identify_peaks()
+
+    for i in range(0, len(seconds)):
         secs.append(seconds[i])
-        firstFive = sum(tweetCountsAll[i:i+5])
-        secondFive = sum(tweetCountsAll[i+5:i+10])
+        firstFive = sum(tweetCounts[i:i+5])
+        secondFive = sum(tweetCounts[i+5:i+10])
 
         if secondFive == 0:
             ratios.append(1)
         else:
-            ratios.append(firstFive / secondFive)
+            ratios.append(firstFive / float(secondFive))
 
     return secs, ratios
 
@@ -105,4 +99,31 @@ def all_graphs():
 
     plt.plot(range(len(tweetCountsAll)), tweetCountsAll)
     plt.show()
+
+def create_dump(ts):
+    df = pd.read_csv('frames/all.txt', sep = '\t')
+    df.dateTime = df.dateTime.apply(lambda x : datetime.datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
+    for t in ts:
+        start = t
+        end = t + datetime.timedelta(seconds=60)
+        tweets = df[df.dateTime.apply(lambda x : x >= start and x <= end)]
+        with open('ts/' + str(t) + '.txt', 'w') as f:
+            for text in tweets.text:
+                f.write(text + '\n')
+
+
+seconds, ratios = get_ratios()
+seconds = np.array(seconds)
+ratios = np.array(ratios)
+
+best50 = ratios.argsort()[:50]
+
+bs = seconds[best50]
+rs = ratios[best50]
+
+sbs = sorted(bs)
+plt.xlim(sbs[0], sbs[-1])
+plt.scatter(sbs, rs[bs.argsort()])
+
+create_dump(bs)
 
