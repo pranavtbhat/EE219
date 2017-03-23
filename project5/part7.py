@@ -109,7 +109,7 @@ def create_dump(ts):
         tweets = df[df.dateTime.apply(lambda x : x >= start and x <= end)]
         with open('ts/' + str(t) + '.txt', 'w') as f:
             for text in tweets.text:
-                f.write(text + '\n')
+                f.write(text + '.\n')
 
 
 seconds, ratios = get_ratios()
