@@ -1,8 +1,11 @@
 import json
+import numpy as np
 from os.path import join
 from tqdm import tqdm
 import pandas as pd
 from datetime import datetime
+
+import matplotlib.pyplot as plt
 
 hashtags = {
     'gohawks' : 188136,
@@ -13,27 +16,52 @@ hashtags = {
     'superbowl' : 1348767
 }
 
-int_period_start = datetime(2015,2,1,14,0,0)
-int_period_end = datetime(2015,2,1,23,0,0)
+print "Computing Statistics for hashtags:"
+for (htag,lcount) in hashtags.iteritems():
+    print "###"
+    print "#", htag + ":"
+    print "###"
 
-def make_files():
-    print "Loading text for hashtags:"
-        for (htag,lcount) in hashtags.iteritems():
+    with open(join('tweet_data', 'tweets_#' + htag + '.txt'), 'r') as f:
+        df = pd.DataFrame(index=range(lcount), columns=['dateTime', 'tweetCount', 'uid', 'retweetCount', 'followerSum', 'maxFollowers'])
+        for i, line in tqdm(enumerate(f), total=lcount):
+            tweet_data = json.loads(line)
+            date = datetime.fromtimestamp(tweet_data['firstpost_date'])
+            df.set_value(i, 'dateTime', date)
+            df.set_value(i, 'tweetCount', 1)
+            df.set_value(i, 'uid', tweet_data.get('tweet').get('user').get('id'))
+            df.set_value(i, 'retweetCount', tweet_data['metrics']['citations']['total'])
+            df.set_value(i, 'followerSum', tweet_data['author']['followers'])
+            df.set_value(i, 'maxFollowers', tweet_data['author']['followers'])
+
+        df = df.set_index('dateTime')
+        hourlySeries = df.groupby(pd.TimeGrouper(freq='60Min'))
+
+        tweet_counts = []
+        follower_counts = []
+        retweet_counts = []
+
+
+        for i,(interval,group) in enumerate(hourlySeries):
+            tweet_count = group.tweetCount.sum()
+            tweet_counts.append(tweet_count)
+
+            follower_counts.append(group.followerSum.sum() / float(group.uid.nunique()))
+
+            retweet_counts.append(group.retweetCount.sum() / tweet_count)
+
         print "###"
-        print "#", htag + ":"
-        print "###"
+        print "#", htag
+        print "####"
+        print "Average number of tweets/hr is", np.mean(tweet_counts)
+        print "Average number of followers per user is", np.mean(follower_counts)
+        print "Average number of retweets per tweet is", np.mean(retweet_counts)
 
-        with open(join('tweet_data', 'tweets_#' + htag + '.txt'), 'r') as f:
-            df = pd.DataFrame(columns=['dateTime', 'tweetCount', 'text'])
+        if htag in ['#superbowl', "#nfl"]:
+            plt.ylabel('Number of tweets')
+            plt.xlabel('Hours')
+            plt.title('Number of tweets per hour for {}'.format(htag))
+            plt.bar(range(len(tweet_counts)),tweet_counts)
+            plt.savefig('plots/' + htag + '_statistics.png', format='png')
 
-            for i, line in tqdm(enumerate(f), total=lcount):
-                tweet_data = json.loads(line)
-                date = datetime.fromtimestamp(tweet_data['firstpost_date'])
-                language = tweet_date['tweet']['lang']
-
-                if language == 'en' and date > int_period_start and date < int_period_end:
-                    text = tweet_data['tweet']['text']
-                    text = ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)"," ",text).split())
-                    df = pd.append(df, {"dateTime" : date, 'tweetCount' : 1, 'text' : text})
-
-            df.to_csv(join('frames/', htag + '.txt'), sep='\t')
+        print "--------------------------------------------------------------------------------"
